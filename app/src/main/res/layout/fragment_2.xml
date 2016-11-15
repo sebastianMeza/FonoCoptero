@@ -1,0 +1,80 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="cl.tanmeza.fonocoptero.Inicio.Section_2"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp" >
+
+    <RelativeLayout
+        android:id="@+id/frame_container_2"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="true">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="aceleracion:"
+            android:id="@+id/textView_2_title_acceleration"
+            />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Text 1"
+            android:id="@+id/textView_2_01"
+            android:layout_below="@+id/textView_2_title_acceleration"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Text 2"
+            android:id="@+id/textView_2_02"
+            android:layout_below="@+id/textView_2_01"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Text 3"
+            android:id="@+id/textView_2_03"
+            android:layout_below="@+id/textView_2_02"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="orientacion:"
+            android:id="@+id/textView_2_title_orientacion"
+            android:layout_below="@+id/textView_2_03"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Text 1"
+            android:id="@+id/textView_2_04"
+            android:layout_below="@+id/textView_2_title_orientacion"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Text 2"
+            android:id="@+id/textView_2_05"
+            android:layout_below="@+id/textView_2_04"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Text 3"
+            android:id="@+id/textView_2_06"
+            android:layout_below="@+id/textView_2_05"
+            />
+
+    </RelativeLayout>
+
+
+</RelativeLayout>
