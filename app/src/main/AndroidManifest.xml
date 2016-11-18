@@ -2,6 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cl.tanmeza.fonocoptero" >
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-feature android:name="android.hardware.usb.accessory" />
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -15,6 +24,22 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+
+            <!-- Notify this app when a USB accessory is connected. -->
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_ACCESSORY_ATTACHED" />
+            </intent-filter>
+
+        </activity>
+        <activity
+            android:name=".QuadcopterActivity"
+            android:label="Action"
+            android:parentActivityName=".Inicio" >
+            <!-- Parent activity meta-data to support API level 4+ -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Inicio" />
         </activity>
     </application>
 

@@ -2,6 +2,7 @@ package cl.tanmeza.fonocoptero;
 
 import android.app.Activity;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,6 +27,8 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -332,6 +335,17 @@ public class Inicio extends AppCompatActivity
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_3, container, false);
 
+            Button button= (Button) rootView.findViewById(R.id.button_play);
+
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity() , QuadcopterActivity.class);
+                    //intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    startActivity(intent);
+
+                }
+            });
 
             return rootView;
         }

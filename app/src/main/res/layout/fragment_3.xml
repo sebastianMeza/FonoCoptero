@@ -6,51 +6,13 @@
     android:paddingLeft="12dp"
     android:paddingRight="12dp" >
 
-    <RelativeLayout
-        android:id="@+id/frame_container_3"
-        android:layout_width="match_parent"
-        android:layout_height="48dp">
 
-        <LinearLayout
-            android:id="@+id/linear_android_3"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" >
-
-            <EditText
-                android:layout_width="0dip"
-                android:layout_height="match_parent"
-                android:layout_weight="70"
-                android:id="@+id/editText_3"
-                android:hint="hint 3"
-                />
-
-            <Spinner
-                android:layout_width="0dip"
-                android:layout_height="match_parent"
-                android:layout_weight="30"
-                android:spinnerMode="dropdown"
-                android:textSize="30sp"
-                android:id="@+id/spinner_3"
-                />
-
-        </LinearLayout>
-
-    </RelativeLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_below="@id/frame_container_3"
-        android:background="@android:color/darker_gray"
-        android:id="@+id/separador_3" />
-
-
-    <ListView
-        android:id="@+id/listView_3"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/separador_3"
-        android:layout_gravity="center" />
-
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Empezar"
+        android:id="@+id/button_play"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="60dp" />
 </RelativeLayout>
