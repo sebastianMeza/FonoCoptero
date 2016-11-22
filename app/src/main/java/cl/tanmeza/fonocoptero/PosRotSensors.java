@@ -125,11 +125,21 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
 
     @Override
     protected void onPause() {
-        sensorManager.unregisterListener(this);
+        //sensorManager.unregisterListener(this);
         super.onPause();
     }
 
-
+    protected void detener() {
+        //detener listener de los sensores
+        sensorManager.unregisterListener(this);
+        //detener listener del GPS
+        if (locationManager != null) {
+            if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    || ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                locationManager.removeUpdates(this);
+            }
+        }
+    }
 /*
     @Override
     protected void onPause(){

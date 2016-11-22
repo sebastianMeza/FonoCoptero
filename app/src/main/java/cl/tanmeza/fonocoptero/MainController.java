@@ -85,7 +85,7 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 		//client.stop();
 		
 		// Stop the sensors.
-		//posRotSensors.onPause();
+		posRotSensors.detener();
 		
 		// Stop the camera.
 		//camera.releaseCamera();
