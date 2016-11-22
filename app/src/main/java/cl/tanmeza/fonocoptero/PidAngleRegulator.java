@@ -2,10 +2,8 @@ package cl.tanmeza.fonocoptero;
 
 // This PID regulator is for angles (in degrees) only, because it handles the
 // transition "+180°, -180°".
-public class PidAngleRegulator
-{
-    public PidAngleRegulator(float kp, float ki, float kd, float smoothingStrength)
-    {
+public class PidAngleRegulator{
+    public PidAngleRegulator(float kp, float ki, float kd, float smoothingStrength)    {
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
@@ -16,8 +14,7 @@ public class PidAngleRegulator
         differencesMean = 0.0f;
     }
 
-    public float getInput(float targetAngle, float currentAngle, float dt)
-    {
+    public float getInput(float targetAngle, float currentAngle, float dt){
         // The complete turn can be done, so we have to be careful around the
         // "+180°, -180°" limit.
         float rawDifference = targetAngle - currentAngle;
@@ -35,36 +32,29 @@ public class PidAngleRegulator
         input += integrator;
 
         // Derivative part, with filtering.
-        if(!differenceJump)
-        {
-            differencesMean = differencesMean * smoothingStrength
-                    + difference * (1-smoothingStrength);
+        if(!differenceJump){
+            differencesMean = differencesMean * smoothingStrength + difference * (1-smoothingStrength);
             float derivative = (differencesMean - previousDifference) / dt;
             previousDifference = differencesMean;
             input += derivative * kd;
         }
-        else
-        {
+        else{
             // Erase the history, because we are not reaching the target from
             // the "same side".
             differencesMean = 0.0f;
         }
-
         return input;
     }
 
-    public void setCoefficients(float kp, float ki, float kd)
-    {
+    public void setCoefficients(float kp, float ki, float kd){
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
     }
 
-    public void resetIntegrator()
-    {
+    public void resetIntegrator(){
         integrator = 0.0f;
     }
 
-    private float kp, ki, kd, integrator, smoothingStrength, differencesMean,
-            previousDifference;
+    private float kp, ki, kd, integrator, smoothingStrength, differencesMean, previousDifference;
 }

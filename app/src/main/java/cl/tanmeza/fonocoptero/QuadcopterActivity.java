@@ -10,15 +10,13 @@ import android.widget.Toast;
 import android.app.Activity;
 import android.content.SharedPreferences;
 
-public class QuadcopterActivity extends Activity
-{
+public class QuadcopterActivity extends Activity{
 	public static final long UI_REFRESH_PERIOD_MS = 250;
 	public static final String PREFS_NAME = "MyPrefsFile";
 	public static final String PREFS_ID_LAST_IP = "lastServerIP";
 
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_action);
         
@@ -47,7 +45,7 @@ public class QuadcopterActivity extends Activity
     */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event){
-		if (keyCode == KeyEvent.KEYCODE_BACK ) {
+		if (keyCode == KeyEvent.KEYCODE_BACK ){
 			//Intent intent_2 = new Intent(this , Inicio.class);
 			//startActivity(intent_2);
 		}
@@ -55,28 +53,21 @@ public class QuadcopterActivity extends Activity
 	}
 
 	@Override
-    protected void onResume()
-    {
+    protected void onResume(){
 		super.onResume();
-		/*
 		// Prevent sleep mode.
 		getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		
 		// Start the main controller.
-		try
-		{
+		try{
 			mainController.start();
-		}
-		catch (Exception e)
-		{
-			Toast.makeText(this, "The USB transmission could not start.",
-						   Toast.LENGTH_SHORT).show();
+		}catch (Exception e){
+			Toast.makeText(this, "The USB transmission could not start.", Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
 		}
-		
+
+		/*
 		// Allow the user starting the TCP client.
 		serverIpEditText.setEnabled(true);
-
 		// Connect automatically to the computer.
 		// This way, it is possible to start the communication just by plugging
 		// the ADK (if the auto-start of this application is checked).
@@ -86,22 +77,17 @@ public class QuadcopterActivity extends Activity
     }
 
     @Override
-    protected void onPause()
-    {
+    protected void onPause(){
 		super.onPause();
-
     	// Reallow sleep mode.
 		getWindow().clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		
 		// Stop the main controller.
 		mainController.stop();
     }
     
     @Override
-    protected void onStop()
-    {
+    protected void onStop(){
     	super.onStop();
-    	
     	// Save the server IP.
     	//SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
         //SharedPreferences.Editor editor = settings.edit();
@@ -109,24 +95,19 @@ public class QuadcopterActivity extends Activity
         //editor.commit();
     }
     
-    public void onConnectToServerCheckBoxToggled(View v)
-    {
+    public void onConnectToServerCheckBoxToggled(View v){
 		/*
-    	if(connectToServerCheckBox.isChecked()) // Connect.
-    	{
+		// Connect.
+    	if(connectToServerCheckBox.isChecked()){
     		mainController.startClient(serverIpEditText.getText().toString());
-    		
     		serverIpEditText.setEnabled(false);
     	}
-    	else // Disconnect.
-    	{
+    	else{ // Disconnect.
     		serverIpEditText.setEnabled(true);
-    		
     		mainController.stopClient();
     	}
     	*/
     }
-
 
     //private CheckBox connectToServerCheckBox;
     //private EditText serverIpEditText;

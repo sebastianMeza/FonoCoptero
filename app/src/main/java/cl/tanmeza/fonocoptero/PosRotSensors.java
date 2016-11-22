@@ -32,8 +32,7 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
     private HeliState heliState;
     private float[] rotationVec, rotationMatrix, yawPitchRollVec;
     private float yawZero, pitchZero, rollZero, elevationZero, latitudeZero,
-            longitudeZero, absoluteLongitude, absoluteLatitude,
-            absoluteElevation;
+            longitudeZero, absoluteLongitude, absoluteLatitude, absoluteElevation;
     private boolean newMeasurementsReady;
     private LocationManager locationManager;
     private LocationListener locationListener;
@@ -46,7 +45,7 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
     public static final boolean USE_GPS = false;
     Context mContext;
 
-    public PosRotSensors(Context mContext) {
+    public PosRotSensors(Context mContext){
         this.mContext = mContext;
         heliState = new HeliState();
         rotationMatrix = new float[9];
@@ -90,7 +89,7 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
         //Log.v("Fonotest", "GPS:"+USE_GPS);
 
         /*
-        if(USE_GPS) {
+        if(USE_GPS){
             locationManager = (LocationManager) getSystemService(mContext.LOCATION_SERVICE);
             Log.v("Fonotest", "paso 4 gps");
         }
@@ -99,7 +98,7 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
         //locationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, 3000, 10, this);
         if (locationManager != null){
             if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(mContext,Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    || ActivityCompat.checkSelfPermission(mContext,Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
                 Log.v("Fonotest", "GPS configurado");
             }
@@ -109,9 +108,8 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
     }
 
     @Override
-    protected void onResume() {
+    protected void onResume(){
         super.onResume();
-
         if(sensorManager.getSensorList(Sensor.TYPE_ROTATION_VECTOR).size()!=0){
             rotationSensor = sensorManager.getSensorList(Sensor.TYPE_ROTATION_VECTOR).get(0);
             sensorManager.registerListener(this,rotationSensor, SensorManager.SENSOR_DELAY_NORMAL); //SENSOR_DELAY_NORMAL o SENSOR_DELAY_FASTEST
@@ -124,22 +122,23 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
     }
 
     @Override
-    protected void onPause() {
-        //sensorManager.unregisterListener(this);
+    protected void onPause(){
         super.onPause();
+        //sensorManager.unregisterListener(this);
     }
 
-    protected void detener() {
+    protected void detener(){
         //detener listener de los sensores
         sensorManager.unregisterListener(this);
         //detener listener del GPS
-        if (locationManager != null) {
+        if (locationManager != null){
             if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    || ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    || ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
                 locationManager.removeUpdates(this);
             }
         }
     }
+
 /*
     @Override
     protected void onPause(){
@@ -155,7 +154,6 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
                 }
             }
             //locationManager.removeUpdates(locationListener);
-
         // Disable the inertial sensors.
         sensorManager.unregisterListener(this);
         }
@@ -171,19 +169,13 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
         heliState.latitude = location.getLatitude();
 
         heliState.nSatellites = location.getExtras().getInt("satellites");
-
-        String str = "GPS: " + "altitud: " + heliState.gpsElevation + ", "
-                + "exactitud: " + heliState.gpsAccuracy + ", "
-                + "longitud: " + heliState.longitude + ", "
-                + "latitud: " + heliState.latitude + ", "
+        String str = "GPS: " + "altitud: " + heliState.gpsElevation + ", " + "exactitud: " + heliState.gpsAccuracy + ", "
+                + "longitud: " + heliState.longitude + ", " + "latitud: " + heliState.latitude + ", "
                 + "nºSatelites: " + heliState.nSatellites;// + ", "
-
-                /*+ "navegacion: " + location.getBearing() + ", "
-                + "velocidad: " + location.getSpeed() + ", "
+                /*+ "navegacion: " + location.getBearing() + ", " + "velocidad: " + location.getSpeed() + ", "
                 + "proveedor: " + location.getProvider();*/
 
-        // Convert longitude+latitude to x+y (using the small angles
-        // approximation: sin(x)~=x).
+        // Convert longitude+latitude to x+y (using the small angles approximation: sin(x)~=x).
         heliState.xPos = (float) (EARTH_RADIUS * (heliState.longitude-longitudeZero) * DEG_TO_RAD);
         heliState.yPos = (float) (EARTH_RADIUS * (heliState.latitude-latitudeZero) * DEG_TO_RAD);
 
@@ -194,8 +186,6 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
         //str = "Latitude: "+location.getLatitude()+", Longitude: "+location.getLongitude();
         Toast.makeText(mContext, str, Toast.LENGTH_LONG).show();
     }
-
-
 
     @Override
     public void onProviderDisabled(String provider) {
@@ -221,17 +211,13 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
         heliState.gpsStatus = status;
     }
 
-
     @Override
     public void onSensorChanged(SensorEvent event){
-        Log.v("Fonotest", "lectura de sensores.");
-
+        //Log.v("Fonotest", "lectura de sensores.");
         if (event.sensor == rotationSensor){
             // Get the time and the rotation vector.
             heliState.time = event.timestamp;
             System.arraycopy(event.values, 0, rotationVec, 0, 3);
-            //Log.v("Fonotest", "sensor_rotation 1");
-
             // Convert the to "yaw, pitch, roll".
             SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVec);
             SensorManager.getOrientation(rotationMatrix, yawPitchRollVec);
@@ -244,16 +230,12 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
             // New sensors data are ready.
             newMeasurementsReady = true;
             //Log.v("Fonotest", "sensor_rotation 2");
-
         }
-        else if(event.sensor == pressureSensor)
-        {
-            //Log.v("Fonotest", "sensor_presion 1");
+        else if(event.sensor == pressureSensor){
             float pressure = event.values[0];
             float rawAltitudeUnsmoothed = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, pressure);
             absoluteElevation = (absoluteElevation*ALTITUDE_SMOOTHING) + (rawAltitudeUnsmoothed*(1.0f-ALTITUDE_SMOOTHING));
             heliState.baroElevation = absoluteElevation - elevationZero;
-            //Log.v("Fonotest", "sensor_presion 2");
         }
     }
 
@@ -269,7 +251,6 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
 
     public HeliState getState(){
         newMeasurementsReady = false;
-
         return heliState;
         }
 
@@ -286,15 +267,15 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
     {
         return newMeasurementsReady;
     }
-
     // Return the smallest angle between two segments.
     public static float getMainAngle(float angle){
-        while(angle < -180.0f)
+        while(angle < -180.0f){
             angle += 360.0f;
-        while(angle > 180.0f)
-            angle -= 360.0f;
-        return angle;
         }
-
+        while(angle > 180.0f){
+            angle -= 360.0f;
+        }
+        return angle;
+    }
 
 }

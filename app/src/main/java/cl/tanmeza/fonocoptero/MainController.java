@@ -5,12 +5,11 @@ import java.util.ArrayList;
 import android.os.SystemClock;
 import android.util.Log;
 
-//import cl.tanmeza.fonocoptero.AdkCommunicator.AdbListener;
 import cl.tanmeza.fonocoptero.PosRotSensors.HeliState;
+//import cl.tanmeza.fonocoptero.AdkCommunicator.AdbListener;
 //import cl.tanmeza.fonocoptero.TcpClient.TcpMessageReceiver;
 
-public class MainController //implements TcpMessageReceiver, AdbListener
-{
+public class MainController { //implements TcpMessageReceiver, AdbListener
 	public static final int STATE_SEND_DIVIDER = 20;
 	public static final double MAX_MOTOR_POWER = 100.0; // 255.0 normally, less for testing.
 	public static final float MAX_TIME_WITHOUT_PC_RX = 1.0f; // Maximum time [s] without any message from the PC, before emergency stop.
@@ -19,8 +18,7 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 	public static final float MAX_SAFE_PITCH_ROLL = 60; // [deg].
 	public static final float PID_DERIV_SMOOTHING = 0.5f;
 
-	public MainController(QuadcopterActivity activity)
-	{
+	public MainController(QuadcopterActivity activity){
 		this.activity = activity;
 
 		//transmitter = new AdkCommunicator(this, activity);
@@ -55,8 +53,7 @@ public class MainController //implements TcpMessageReceiver, AdbListener
         //camera = (CameraPreview)activity.findViewById(R.id.cameraSurface);
 	}
 
-	public void start() throws Exception
-	{
+	public void start() throws Exception{
 		// Initializations.
 		regulatorEnabled = false;
 		altitudeLockEnabled = false;
@@ -73,10 +70,9 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 		//transmitter.start(false);
 	}
 	
-	public void stop()
-	{
+	public void stop(){
 		// Stop the main controller thread.
-		//controllerThread.requestStop();
+		controllerThread.requestStop();
 		
 		// Stop the motors controller.
 		//transmitter.stop();
@@ -92,28 +88,23 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 	}
 
     /*
-	public void startClient(String serverIP)
-	{
+	public void startClient(String serverIP){
 		client.start(serverIP);
 	}
-	public void stopClient()
-	{
+	public void stopClient(){
 		client.stop();
 	}
 	*/
 
-	public HeliState getSensorsData()
-	{
+	public HeliState getSensorsData(){
 		return heliState;
 	}
 	
-	public MotorsPowers getMotorsPowers()
-	{
+	public MotorsPowers getMotorsPowers(){
 		return motorsPowers;
 	}
 	
-	public boolean getRegulatorsState()
-	{
+	public boolean getRegulatorsState(){
 		return regulatorEnabled;
 	}
 	
@@ -121,53 +112,41 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 		@Override
 		public void run(){
 			again = true;
-			
 			long testLastTime = SystemClock.elapsedRealtime()*1000000;
 
-			while(again)
-			{
+			while(again){
 				// This loop runs at a very high frequency (1kHz), but all the
 				// control only occurs when new measurements arrive.
-				if(!posRotSensors.newMeasurementsReady())
-				{
+				if(!posRotSensors.newMeasurementsReady()){
 					SystemClock.sleep(1);
 					continue;
-				}
-				
+					}
 				long testCurrentTime = SystemClock.elapsedRealtime()*1000000;
-				if(testCurrentTime > testLastTime + 20000000)
-					Log.w("Fonotest", "Ultimo loop hace " + (testCurrentTime-testLastTime)/1000000 + "ms, en lugar de 5ms!");
-				
+				if(testCurrentTime > testLastTime + 20000000){
+					Log.w("Fonotest", "Ultimo loop/thread hace " + (testCurrentTime-testLastTime)/1000000 + "ms, en lugar de 5ms!");
+					}
 				testLastTime = testCurrentTime;
-
 				// Get the sensors data.
 				heliState = posRotSensors.getState();
-				
 				float currentYaw = heliState.yaw;
 				float currentPitch = heliState.pitch;
 				float currentRoll = heliState.roll;
 				float currentAltitude = heliState.baroElevation;
-				
 				long currentTime = heliState.time;
 				float dt = ((float)(currentTime-previousTime)) / 1000000000.0f; // [s].
 				previousTime = currentTime;
 				
-				if(Math.abs(dt) > 1.0) // In case of the counter has wrapped around.
-			        continue;
-				
+				if(Math.abs(dt) > 1.0){ // In case of the counter has wrapped around.
+					continue;
+				}
 				// Check for dangerous situations.
-				if(regulatorEnabled)
-				{
+				if(regulatorEnabled){
 					// If the quadcopter is too inclined, emergency stop it.
-					if(Math.abs(currentPitch) > MAX_SAFE_PITCH_ROLL ||
-					   Math.abs(currentRoll) > MAX_SAFE_PITCH_ROLL)
-					{
+					if(Math.abs(currentPitch) > MAX_SAFE_PITCH_ROLL || Math.abs(currentRoll) > MAX_SAFE_PITCH_ROLL){
 						emergencyStop();
 					}
-					
 					// If no message has been received from the computer, this
-					// may mean that it crashed, so the flight should be
-					// stopped.
+					// may mean that it crashed, so the flight should be stopped.
 					timeWithoutPcRx += dt;
 					if(timeWithoutPcRx > MAX_TIME_WITHOUT_PC_RX)
 						emergencyStop();
@@ -176,25 +155,25 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 				// If there the ADK has not sent the temperature for a long time
 				// set the displayed temperature to 0 (error).
 				timeWithoutAdkRx += dt;
-				if(timeWithoutAdkRx > MAX_TIME_WITHOUT_ADK_RX)
+				if(timeWithoutAdkRx > MAX_TIME_WITHOUT_ADK_RX) {
 					batteryVoltage = 0.0f;
-				
+				}
 				// Compute the motors powers.
 				float yawForce, pitchForce, rollForce, altitudeForce;
-				
-				if(regulatorEnabled && meanThrust > 1.0)
-				{
+
+				if(regulatorEnabled && meanThrust > 1.0){
 					// Compute the "forces" needed to move the quadcopter to the
 					// set point.
 					yawForce = yawRegulator.getInput(yawAngleTarget, currentYaw, dt);
 					pitchForce = pitchRegulator.getInput(pitchAngleTarget, currentPitch, dt);
 					rollForce = rollRegulator.getInput(rollAngleTarget, currentRoll, dt);
 					
-					if(altitudeLockEnabled)
+					if(altitudeLockEnabled){
 						altitudeForce = altitudeRegulator.getInput(altitudeTarget, currentAltitude, dt);
-					else
+					}
+					else{
 						altitudeForce = meanThrust;
-					
+					}
 					// Compute the power of each motor.
 					double tempPowerNW, tempPowerNE, tempPowerSE, tempPowerSW;
 					
@@ -224,8 +203,7 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 					motorsPowers.se = motorSaturation(tempPowerSE);
 					motorsPowers.sw = motorSaturation(tempPowerSW);
 				}
-				else
-				{
+				else{
 					motorsPowers.nw = 0;
 					motorsPowers.ne = 0;
 					motorsPowers.se = 0;
@@ -239,8 +217,7 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 				//transmitter.setPowers(motorsPowers);
 				
 				// Log the variables, if needed.
-				if(log != null)
-				{
+				if(log != null){
 					LogPoint p = new LogPoint();
 					p.time = currentTime/1000000 % INT_MAX;
 					p.yaw = currentYaw;
@@ -260,17 +237,14 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 					p.altitude = currentAltitude;
 					log.add(p);
 				}
-				
 				// Transmit the current state to the computer.
 				// If another component is transmitting (e.g. the video from the
 				// camera), then do not transmit, because this would involve
 				// waiting. This control loop should never be blocked!
-				//if(!camera.isStreaming())
-				{
+				/*
+				if(!camera.isStreaming()){
 					stateSendDividerCounter++;
-					
-					if(stateSendDividerCounter % STATE_SEND_DIVIDER == 0)
-					{
+					if(stateSendDividerCounter % STATE_SEND_DIVIDER == 0){
 						String currStateStr = "" + (currentTime/1000000 % INT_MAX) +
 											  " " + currentYaw + " " + yawAngleTarget + " " + yawForce +
 											  " " + currentPitch + " " + pitchAngleTarget + " " + pitchForce +
@@ -279,62 +253,56 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 											  " " + 0 +
 											  " " + (regulatorEnabled?1:0) +
 											  " " + currentAltitude + " " + altitudeTarget + " " + altitudeForce;
-						
-							//client.sendMessageNowOrSkip(currStateStr.getBytes(), TcpClient.TYPE_CURRENT_STATE);
+						client.sendMessageNowOrSkip(currStateStr.getBytes(), TcpClient.TYPE_CURRENT_STATE);
 					}
 				}
+				*/
 			}
 		}
 		
-		public void requestStop()
-		{
+		public void requestStop(){
 			again = false;
-		}
-		
+			}
 		private boolean again;
 	}
 	
-	private int motorSaturation(double val)
-	{
-		if(val > MAX_MOTOR_POWER)
-			return (int)MAX_MOTOR_POWER;
-		else if(val < 0.0)
+	private int motorSaturation(double val){
+		if(val > MAX_MOTOR_POWER) {
+			return (int) MAX_MOTOR_POWER;
+		}
+		else if(val < 0.0) {
 			return 0;
-		else
+		}
+		else{
 			return (int)val;
+		}
 	}
 
-	public void onConnectionEstablished()
-	{
+	public void onConnectionEstablished(){
 		// Reset the orientation.
 		posRotSensors.setCurrentStateAsZero();
 	}
 
-	public void onConnectionLost()
-	{
+	public void onConnectionLost(){
 		// Emergency stop of the quadcopter.
 		emergencyStop();
 	}
 	
-	public void onMessageReceived(String message)
-	{		
+	public void onMessageReceived(String message){
 		// Reset the timer.
 		timeWithoutPcRx = 0.0f;
 		
 		// Interpret the message, and do an action corresponding to the enclosed
 		// order.
-		if(message.equals("heartbeat"))
-		{
+		if(message.equals("heartbeat")){
 			// Do nothing, this is just to reset the timer.
 		}
-		else if(message.equals("emergency_stop"))
+		else if(message.equals("emergency_stop")) {
 			emergencyStop();
-		else if(message.startsWith("command "))
-		{
+		}
+		else if(message.startsWith("command ")){
 			String[] values = message.replace("command ", "").split("\\s");
-			
-			if(values.length == 4)
-			{
+			if(values.length == 4){
 				meanThrust = (float)Integer.parseInt(values[0]);
 				yawAngleTarget = Float.parseFloat(values[1]);
 				pitchAngleTarget = Float.parseFloat(values[2]);
@@ -343,20 +311,17 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 				//Log.d("dp", "meanThrust: " + meanThrust);
 				
 				// Reset the integrators if the motors are off.
-				if(Integer.parseInt(values[0]) == 0)
-				{
+				if(Integer.parseInt(values[0]) == 0){
 					yawRegulator.resetIntegrator();
 					pitchRegulator.resetIntegrator();
 					rollRegulator.resetIntegrator();
 				}
 			}
 		}
-		else if(message.startsWith("regulator_coefs "))
-		{
+		else if(message.startsWith("regulator_coefs ")){
 			String[] values = message.replace("regulator_coefs ", "").split("\\s");
 			
-			if(values.length == 12)
-			{
+			if(values.length == 12){
 				float yawP = Float.parseFloat(values[0]);
 				float yawI = Float.parseFloat(values[1]);
 				float yawD = Float.parseFloat(values[2]);
@@ -375,86 +340,67 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 				altitudeRegulator.setCoefficients(altiP, altiI, altiD);
 			}
 		}
-		else if(message.equals("regulator_state on"))
+		else if(message.equals("regulator_state on")) {
 			regulatorEnabled = true;
-		else if(message.equals("regulator_state off"))
-		{
+		}
+		else if(message.equals("regulator_state off")){
 			regulatorEnabled = false;
 		}
-		else if(message.equals("log on"))
-		{
+		else if(message.equals("log on")){
 			// Create a log file.
 			log = new ArrayList<LogPoint>();
-			
 			//client.sendMessage("Logging started.".getBytes(), TcpClient.TYPE_TEXT);
 		}
-		else if(message.equals("log off"))
-		{
+		else if(message.equals("log off")){
 			// Generate the string.
 			StringBuilder sb = new StringBuilder();
-			
-			for(int i=0; i<log.size(); i++)
-			{
+			for(int i=0; i<log.size(); i++){
 				LogPoint p = log.get(i);
-				sb.append("" + p.time + " "
-						  + p.yaw + " " + p.pitch + " " + p.roll + " "
-						  + p.yawTarget  + " " + p.pitchTarget + " "
-						  + p.rollTarget + " " + p.yawForce + " "
-						  + p.pitchForce + " " + p.rollForce + " "
-						  + p.meanThrust + " " + p.nwPower + " "
-						  + p.nePower + " " + p.sePower + " " + p.swPower + " "
-						  + p.altitude + "\n");
+				sb.append("" + p.time + " " + p.yaw + " " + p.pitch + " " + p.roll + " " + p.yawTarget  + " " + p.pitchTarget
+						+ " " + p.rollTarget + " " + p.yawForce + " " + p.pitchForce + " " + p.rollForce + " " + p.meanThrust
+						+ " " + p.nwPower + " " + p.nePower + " " + p.sePower + " " + p.swPower + " " + p.altitude + "\n");
 			}
 
 			// Send the log.
 			//client.sendMessage(sb.toString().getBytes(), TcpClient.TYPE_LOG);
 			//client.sendMessage("Logging finished.".getBytes(), TcpClient.TYPE_TEXT);
-			
 			// Stop logging.
 			log = null;
 		}
-		else if(message.equals("orientation_reset"))
-		{
+		else if(message.equals("orientation_reset")){
 			posRotSensors.setCurrentStateAsZero();
 		}
-		else if(message.startsWith("fpv "))
-		{
+		else if(message.startsWith("fpv ")){
 			String newStateString = message.replace("fpv ", "");
-			
-			if(newStateString.equals("stop")) {
+			if(newStateString.equals("stop")){
 				//camera.stopStreaming();
 			}
-			else if(newStateString.equals("sd"))
-			{
+			else if(newStateString.equals("sd")){
 				//camera.setFrameSize(activity, false);
 				//camera.startStreaming(client);
 			}
-			else if(newStateString.equals("hd"))
-			{
+			else if(newStateString.equals("hd")){
 				//camera.setFrameSize(activity, true);
 				//camera.startStreaming(client);
 			}
 		}
-		else if(message.equals("take_picture")) {
+		else if(message.equals("take_picture")){
 			//camera.takePicture(client);
 		}
-		else if(message.startsWith("altitude_lock "))
-		{
+		else if(message.startsWith("altitude_lock ")){
 			String newStateString = message.replace("altitude_lock ", "");
-			
-			if(newStateString.equals("on"))
-			{
+			if(newStateString.equals("on")){
 				altitudeTarget = heliState.baroElevation;
 				altitudeRegulator.setAPriori((float)motorsPowers.getMean());
 				altitudeLockEnabled = true;
 			}
-			else if(newStateString.equals("off"))
+			else if(newStateString.equals("off")){
 				altitudeLockEnabled = false;
+			}
 		}
 	}
 	
-	private void emergencyStop()
-	{
+	private void emergencyStop(){
 		// TODO
 		// The motors should stop gradually, to avoid hitting the ground too
 		// hard ?
@@ -462,30 +408,24 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 		regulatorEnabled = false;
 	}
 	
-	public void onBatteryVoltageArrived(float batteryVoltage)
-	{
+	public void onBatteryVoltageArrived(float batteryVoltage){
 		this.batteryVoltage = batteryVoltage;
-		
 		// Reset the timer.
 		timeWithoutAdkRx = 0.0f;
 	}
 	
-	public class MotorsPowers
-	{
+	public class MotorsPowers{
 		public int nw, ne, se, sw; // 0-1023 (10 bits values).
-		
-		public int getMean()
-		{
-			return (nw+ne+se+sw) / 4;
+
+		public int getMean(){
+			return (nw+ne+se+sw)/4;
 		}
 	}
 	
-	private class LogPoint
-	{
+	private class LogPoint{
 		public long time;
-		public float yaw, pitch, roll, yawTarget, pitchTarget, rollTarget,
-					 yawForce, pitchForce, rollForce, meanThrust,
-					 nwPower, nePower, sePower, swPower, altitude;
+		public float yaw, pitch, roll, yawTarget, pitchTarget, rollTarget, yawForce, pitchForce,
+				rollForce, meanThrust, nwPower, nePower, sePower, swPower, altitude;
 	}
 
 	//private TcpClient client;
@@ -493,8 +433,7 @@ public class MainController //implements TcpMessageReceiver, AdbListener
 	//private AdkCommunicator transmitter;
 	//private CameraPreview camera;
 	private float meanThrust, yawAngleTarget, pitchAngleTarget, rollAngleTarget,
-				  altitudeTarget, batteryVoltage, timeWithoutPcRx,
-				  timeWithoutAdkRx;
+				  altitudeTarget, batteryVoltage, timeWithoutPcRx, timeWithoutAdkRx;
 	private PosRotSensors posRotSensors;
 	private MotorsPowers motorsPowers;
 	private boolean regulatorEnabled, altitudeLockEnabled;
