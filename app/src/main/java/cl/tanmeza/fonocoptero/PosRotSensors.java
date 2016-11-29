@@ -3,6 +3,7 @@ package cl.tanmeza.fonocoptero;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -12,7 +13,9 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.PowerManager;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.PermissionChecker;
@@ -21,7 +24,14 @@ import android.view.Display;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-public class PosRotSensors extends Activity implements LocationListener, SensorEventListener{
+import java.util.Calendar;
+
+import ioio.lib.api.exception.ConnectionLostException;
+import ioio.lib.util.BaseIOIOLooper;
+import ioio.lib.util.IOIOLooper;
+import ioio.lib.util.android.IOIOService;
+
+public class PosRotSensors extends IOIOService implements LocationListener, SensorEventListener{
 
     private SensorManager sensorManager;
     private PowerManager mPowerManager;
@@ -36,6 +46,11 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
     private boolean newMeasurementsReady;
     private LocationManager locationManager;
     private LocationListener locationListener;
+
+    public static long DELAY_toast_old = 0;
+    public static long DELAY_toast_new = 0;
+    public static long DELAY_toast_GPS_old = 0;
+    public static long DELAY_toast_GPS_new = 0;
 
     public static final float PI = 3.14159265359f;
     public static final float RAD_TO_DEG = 180.0f / PI;
@@ -107,6 +122,10 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
 
     }
 
+
+
+
+    /*
     @Override
     protected void onResume(){
         super.onResume();
@@ -126,6 +145,33 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
         super.onPause();
         //sensorManager.unregisterListener(this);
     }
+    */
+
+    @Override
+    protected IOIOLooper createIOIOLooper() {
+        return new BaseIOIOLooper() {
+            @Override
+            protected void setup() throws ConnectionLostException, InterruptedException {
+
+                Thread.currentThread().setPriority(10);
+            }
+
+            @Override
+            public void loop() throws ConnectionLostException, InterruptedException {
+
+            }
+
+            @Override
+            public void disconnected() {
+                super.disconnected();
+                stopSelf();
+            }
+
+
+        };
+    }
+
+
 
     protected void detener(){
         //detener listener de los sensores
@@ -137,6 +183,25 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
                 locationManager.removeUpdates(this);
             }
         }
+    }
+
+    protected void comenzar(){
+        if(sensorManager.getSensorList(Sensor.TYPE_ROTATION_VECTOR).size()!=0){
+            rotationSensor = sensorManager.getSensorList(Sensor.TYPE_ROTATION_VECTOR).get(0);
+            sensorManager.registerListener(this,rotationSensor, SensorManager.SENSOR_DELAY_NORMAL); //SENSOR_DELAY_NORMAL o SENSOR_DELAY_FASTEST
+        }
+        if(sensorManager.getSensorList(Sensor.TYPE_PRESSURE).size()!=0){
+            pressureSensor = sensorManager.getSensorList(Sensor.TYPE_PRESSURE).get(0);
+            sensorManager.registerListener(this,pressureSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+
+    }
+
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        stopSelf();
     }
 
 /*
@@ -161,8 +226,6 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
 
     @Override
     public void onLocationChanged(Location location){
-        Log.v("Fonotest", "GPS change");
-
         heliState.gpsElevation = (float) location.getAltitude();
         heliState.gpsAccuracy = location.getAccuracy();
         heliState.longitude = location.getLongitude();
@@ -184,7 +247,21 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
         heliState.ySpeed = location.getSpeed() * (float) Math.sin(location.getBearing());
 
         //str = "Latitude: "+location.getLatitude()+", Longitude: "+location.getLongitude();
-        Toast.makeText(mContext, str, Toast.LENGTH_LONG).show();
+
+        Calendar calendar = Calendar.getInstance();
+        long seconds = calendar.getTimeInMillis();
+        DELAY_toast_GPS_new = seconds;
+        if(DELAY_toast_GPS_new-DELAY_toast_GPS_old>5000) {
+            //Log.v("Fonotest", "GPS change");
+            Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
+            DELAY_toast_GPS_old = seconds;
+        }
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Toast.makeText(getApplicationContext(), "[iv]: Servicio IOIO iniciado", Toast.LENGTH_SHORT).show();
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -206,14 +283,29 @@ public class PosRotSensors extends Activity implements LocationListener, SensorE
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras){
-        Log.v("Fonotest", "GPS sensor change status");
+        //Log.v("Fonotest", "GPS sensor change status");
         heliState.nSatellites = extras.getInt("satellites");
         heliState.gpsStatus = status;
     }
 
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event){
-        //Log.v("Fonotest", "lectura de sensores.");
+        Calendar calendar = Calendar.getInstance();
+        long seconds = calendar.getTimeInMillis();
+        DELAY_toast_new = seconds;
+        if(DELAY_toast_new-DELAY_toast_old>20000) {
+            String str = "SENSORES LEIDOS";
+            //Log.v("Fonotest", str);
+            Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
+            DELAY_toast_old = seconds;
+        }
+
         if (event.sensor == rotationSensor){
             // Get the time and the rotation vector.
             heliState.time = event.timestamp;

@@ -60,7 +60,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 		meanThrust = 0.0f;
 		
 		// Start the sensors.
-		posRotSensors.onResume();
+		posRotSensors.comenzar();
 		
 		// Start the main controller thread.
 		controllerThread = new ControllerThread();
@@ -123,7 +123,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 					}
 				long testCurrentTime = SystemClock.elapsedRealtime()*1000000;
 				if(testCurrentTime > testLastTime + 20000000){
-					Log.w("Fonotest", "Ultimo loop/thread hace " + (testCurrentTime-testLastTime)/1000000 + "ms, en lugar de 5ms!");
+					//Log.w("Fonotest", "Ultimo loop/thread hace " + (testCurrentTime-testLastTime)/1000000 + "ms, en lugar de 5ms!");
 					}
 				testLastTime = testCurrentTime;
 				// Get the sensors data.
