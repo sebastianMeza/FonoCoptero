@@ -16,4 +16,14 @@ android:paddingRight="12dp" >
     android:layout_marginTop="48dp"
     android:textSize="30dp" />
 
+<ToggleButton
+    android:text="ToggleButton"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/button"
+    android:enabled="false"
+    android:layout_below="@+id/textView"
+    android:layout_alignRight="@+id/textView"
+    android:layout_alignEnd="@+id/textView" />
+
 </RelativeLayout>

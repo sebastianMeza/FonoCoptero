@@ -31,7 +31,7 @@ import ioio.lib.util.BaseIOIOLooper;
 import ioio.lib.util.IOIOLooper;
 import ioio.lib.util.android.IOIOService;
 
-public class PosRotSensors extends IOIOService implements LocationListener, SensorEventListener{
+public class PosRotSensors extends Activity implements LocationListener, SensorEventListener{
 
     private SensorManager sensorManager;
     private PowerManager mPowerManager;
@@ -91,7 +91,7 @@ public class PosRotSensors extends IOIOService implements LocationListener, Sens
         pressureSensor = sensorManager.getDefaultSensor(Sensor.TYPE_PRESSURE);
         */
 
-        Log.v("Fonotest", "paso 3");
+        //Log.v("Fonotest", "paso 3");
         if((rotationSensor == null) || (pressureSensor == null)) {
             Log.v("Fonotest", "Sensores faltantes!");
         }
@@ -125,7 +125,6 @@ public class PosRotSensors extends IOIOService implements LocationListener, Sens
 
 
 
-    /*
     @Override
     protected void onResume(){
         super.onResume();
@@ -145,32 +144,6 @@ public class PosRotSensors extends IOIOService implements LocationListener, Sens
         super.onPause();
         //sensorManager.unregisterListener(this);
     }
-    */
-
-    @Override
-    protected IOIOLooper createIOIOLooper() {
-        return new BaseIOIOLooper() {
-            @Override
-            protected void setup() throws ConnectionLostException, InterruptedException {
-
-                Thread.currentThread().setPriority(10);
-            }
-
-            @Override
-            public void loop() throws ConnectionLostException, InterruptedException {
-
-            }
-
-            @Override
-            public void disconnected() {
-                super.disconnected();
-                stopSelf();
-            }
-
-
-        };
-    }
-
 
 
     protected void detener(){
@@ -198,11 +171,7 @@ public class PosRotSensors extends IOIOService implements LocationListener, Sens
     }
 
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopSelf();
-    }
+
 
 /*
     @Override
@@ -258,11 +227,6 @@ public class PosRotSensors extends IOIOService implements LocationListener, Sens
         }
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(getApplicationContext(), "[iv]: Servicio IOIO iniciado", Toast.LENGTH_SHORT).show();
-        return super.onStartCommand(intent, flags, startId);
-    }
 
     @Override
     public void onProviderDisabled(String provider) {
@@ -288,11 +252,7 @@ public class PosRotSensors extends IOIOService implements LocationListener, Sens
         heliState.gpsStatus = status;
     }
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+
 
     @Override
     public void onSensorChanged(SensorEvent event){

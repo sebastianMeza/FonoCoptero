@@ -2,10 +2,12 @@ package cl.tanmeza.fonocoptero;
 
 import java.util.ArrayList;
 
+import android.content.Intent;
 import android.os.SystemClock;
 import android.util.Log;
 
 import cl.tanmeza.fonocoptero.PosRotSensors.HeliState;
+
 //import cl.tanmeza.fonocoptero.AdkCommunicator.AdbListener;
 //import cl.tanmeza.fonocoptero.TcpClient.TcpMessageReceiver;
 
@@ -45,7 +47,8 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 		// Create the sensors manager.
         Log.v("Fonotest","paso 1");
         posRotSensors = new PosRotSensors(activity);
-        Log.v("Fonotest","paso 2");
+
+		Log.v("Fonotest","paso 2");
 
         heliState = posRotSensors.new HeliState();
         
@@ -61,7 +64,6 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 		
 		// Start the sensors.
 		posRotSensors.comenzar();
-		
 		// Start the main controller thread.
 		controllerThread = new ControllerThread();
 		controllerThread.start();
@@ -73,7 +75,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 	public void stop(){
 		// Stop the main controller thread.
 		controllerThread.requestStop();
-		
+
 		// Stop the motors controller.
 		//transmitter.stop();
 		
@@ -108,7 +110,9 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 		return regulatorEnabled;
 	}
 	
-	public class ControllerThread extends Thread{
+	public class ControllerThread extends Thread {
+
+
 		@Override
 		public void run(){
 			again = true;
@@ -257,6 +261,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 					}
 				}
 				*/
+
 			}
 		}
 		
