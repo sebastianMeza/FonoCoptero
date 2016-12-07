@@ -26,4 +26,80 @@ android:paddingRight="12dp" >
     android:layout_alignRight="@+id/textView"
     android:layout_alignEnd="@+id/textView" />
 
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/rl_0"
+        android:layout_above="@+id/rl_1"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="true">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:text="MeanThrust: "
+                android:id="@+id/textView_mt"/>
+
+        </LinearLayout>
+    </RelativeLayout>
+<RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+    android:id="@+id/rl_1"
+    android:layout_above="@+id/rl_2"
+    android:layout_alignParentRight="true"
+    android:layout_alignParentEnd="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="true">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 2:"
+                android:id="@+id/textView_motor2"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 1:"
+                android:id="@+id/textView_motor1"/>
+        </LinearLayout>
+</RelativeLayout><RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+    android:id="@+id/rl_2"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentRight="true"
+    android:layout_alignParentEnd="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="false">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 3:"
+                android:id="@+id/textView_motor3"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 4:"
+                android:id="@+id/textView_motor4"/>
+        </LinearLayout>
 </RelativeLayout>
+
+    </RelativeLayout>

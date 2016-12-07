@@ -8,10 +8,13 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.widget.ToggleButton;
+
+import java.util.ArrayList;
 
 import ioio.lib.api.DigitalOutput;
 import ioio.lib.api.IOIO;
@@ -33,7 +36,14 @@ public class QuadcopterActivity extends IOIOActivity {
 	PwmOutput motor_4;
 
 
+	static int power_motor_1, power_motor_2, power_motor_3, power_motor_4;
+
 	private ToggleButton button_;
+	private static TextView mot_1;
+	private static TextView mot_2;
+	private static TextView mot_3;
+	private static TextView mot_4;
+	private static TextView mthrust;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,6 +58,12 @@ public class QuadcopterActivity extends IOIOActivity {
         //String lastIP = settings.getString(PREFS_ID_LAST_IP, "192.168.0.8");
         //serverIpEditText.setText(lastIP);
 		button_ = (ToggleButton) findViewById(R.id.button);
+		mot_1 = (TextView) findViewById(R.id.textView_motor1);
+		mot_2 = (TextView) findViewById(R.id.textView_motor2);
+		mot_3 = (TextView) findViewById(R.id.textView_motor3);
+		mot_4 = (TextView) findViewById(R.id.textView_motor4);
+		mthrust = (TextView) findViewById(R.id.textView_mt);
+
         // Create the main controller.
         mainController = new MainController(this);
     }
@@ -113,7 +129,7 @@ public class QuadcopterActivity extends IOIOActivity {
         //editor.putString(PREFS_ID_LAST_IP, serverIpEditText.getText().toString());
         //editor.commit();
     }
-    
+
     public void onConnectToServerCheckBoxToggled(View v){
 		/*
 		// Connect.
@@ -128,10 +144,30 @@ public class QuadcopterActivity extends IOIOActivity {
     	*/
     }
 
+
+	public static void setMotores(int pwr_motor_1,int pwr_motor_2,int pwr_motor_3,int pwr_motor_4){
+		power_motor_1 = pwr_motor_1;
+		power_motor_2 = pwr_motor_2;
+		power_motor_3 = pwr_motor_3;
+		power_motor_4 = pwr_motor_4;
+	}
+
+	public static ArrayList<Integer> getMotores(){
+		ArrayList<Integer> motores = new ArrayList<>();
+		motores.add(power_motor_1);
+		motores.add(power_motor_2);
+		motores.add(power_motor_3);
+		motores.add(power_motor_4);
+		return motores;
+	}
+
+
 	/*IOIO CONEXION*/
 	class Looper extends BaseIOIOLooper {
 		//private DigitalOutput led_;
-		boolean probar;
+		boolean probar, vez_1 = true,vez_2 = false;
+		int moto_1,moto_2,moto_3,moto_4;
+
 
 		@Override
 		protected void setup() throws ConnectionLostException {
@@ -149,15 +185,58 @@ public class QuadcopterActivity extends IOIOActivity {
 		@Override
 		public void loop() throws ConnectionLostException, InterruptedException {
 			if(probar) {
+				ArrayList<Integer> new_motores = getMotores();
+				float meant = mainController.getMeanThrust();
+				if(new_motores.size()==4){
+					moto_1 = new_motores.get(0);
+					moto_2 = new_motores.get(1);
+					moto_3 = new_motores.get(2);
+					moto_4 = new_motores.get(3);
+				}
+				else{
+					toast("Loop: error en cantidad de motores");
+				}
+
+				setTexto(moto_1, moto_2, moto_3, moto_4,meant);
+				if(vez_1){
+					vez_1=false;
+					vez_2=true;
+					Thread.sleep(5000);
+				}
+				else if(vez_2){
+					toast("INICIAR");
+					//mainController.setMeanThrust(0.1f);
+					//mainController.setregulatorEnabled(true);
+					vez_2=false;
+					Thread.sleep(5000);
+					toast("INICIAR 2");
+					motor_1.setPulseWidth(1200);
+					motor_2.setPulseWidth(1200);
+					motor_3.setPulseWidth(1200);
+					motor_4.setPulseWidth(1200);
+					/*
+					Thread.sleep(5000);
+					motor_1.setPulseWidth(1100);
+					motor_2.setPulseWidth(1150);
+					motor_3.setPulseWidth(1200);
+					motor_4.setPulseWidth(2200);
+					*/
+				} else {
+
+				}
+
 				//led_.write(!button_.isChecked());
-				motor_1.setPulseWidth(200);
-				toast("IOIO a 200");
-				Thread.sleep(5000);
-				motor_1.setPulseWidth(40);
-				toast("IOIO a 40");
-				probar = false;
+				//motor_1.setPulseWidth(700);
+				//toast("IOIO a 700");
+				//Thread.sleep(5000);
+				//motor_1.setPulseWidth(2000);
+				//toast("IOIO a 2000");
+				//Thread.sleep(5000);
+				//motor_1.setPulseWidth(0);
+				//toast("IOIO a 0");
+				//probar = false;
 			}
-			Thread.sleep(5000);
+			Thread.sleep(100);
 		}
 
 		@Override
@@ -186,6 +265,20 @@ public class QuadcopterActivity extends IOIOActivity {
 		toast(String.format("%s\n" + "IOIOLib: %s\n" + "Application firmware: %s\n" + "Bootloader firmware: %s\n" + "Hardware: %s",
 				title, ioio.getImplVersion(IOIO.VersionType.IOIOLIB_VER), ioio.getImplVersion(IOIO.VersionType.APP_FIRMWARE_VER),
 				ioio.getImplVersion(IOIO.VersionType.BOOTLOADER_VER), ioio.getImplVersion(IOIO.VersionType.HARDWARE_VER)));
+	}
+
+	private void setTexto(final int moto_1,final int moto_2,final int moto_3,final int moto_4,final float mt) {
+		final Context context = this;
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				mot_1.setText("Motor 1: " + moto_1);
+				mot_2.setText("Motor 2: " + moto_2);
+				mot_3.setText("Motor 3: " + moto_3);
+				mot_4.setText("Motor 4: " + moto_4);
+				mthrust.setText("MeanThrust: " + Float.toString(mt));
+			}
+		});
 	}
 
 	private void toast(final String message) {

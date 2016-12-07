@@ -45,11 +45,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 		//client = new TcpClient(this);
 		
 		// Create the sensors manager.
-        Log.v("Fonotest","paso 1");
         posRotSensors = new PosRotSensors(activity);
-
-		Log.v("Fonotest","paso 2");
-
         heliState = posRotSensors.new HeliState();
         
         // Create the camera object.
@@ -98,6 +94,22 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 	}
 	*/
 
+	public void setMeanThrust(final float mThrust){
+		meanThrust = mThrust;
+	}
+	public float getMeanThrust(){
+		return meanThrust;
+	}
+
+	public void setregulatorEnabled(final boolean reg){
+		regulatorEnabled = reg;
+	}
+	public boolean getregulatorEnabled(){
+		return regulatorEnabled;
+	}
+
+
+
 	public HeliState getSensorsData(){
 		return heliState;
 	}
@@ -111,8 +123,6 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 	}
 	
 	public class ControllerThread extends Thread {
-
-
 		@Override
 		public void run(){
 			again = true;
@@ -145,17 +155,24 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 				}
 				// Check for dangerous situations.
 				if(regulatorEnabled){
+					Log.w("Fonotest", "MAX_SAFE_PITCH_ROLL: "+MAX_SAFE_PITCH_ROLL);
+					Log.w("Fonotest", "Math.abs(currentPitch): "+Math.abs(currentPitch));
+					Log.w("Fonotest", "Math.abs(currentRoll): "+Math.abs(currentRoll));
+
 					// If the quadcopter is too inclined, emergency stop it.
 					if(Math.abs(currentPitch) > MAX_SAFE_PITCH_ROLL || Math.abs(currentRoll) > MAX_SAFE_PITCH_ROLL){
+						Log.w("Fonotest", "Emergency 1!");
 						emergencyStop();
 					}
 					// If no message has been received from the computer, this
 					// may mean that it crashed, so the flight should be stopped.
 					timeWithoutPcRx += dt;
+					Log.w("Fonotest", "MAX_TIME_WITHOUT_PC_RX: "+MAX_TIME_WITHOUT_PC_RX);
+					Log.w("Fonotest", "timeWithoutPcRx: "+timeWithoutPcRx);
 					if(timeWithoutPcRx > MAX_TIME_WITHOUT_PC_RX)
+						Log.w("Fonotest", "Emergency 2!");
 						emergencyStop();
 				}
-				
 				// If there the ADK has not sent the temperature for a long time
 				// set the displayed temperature to 0 (error).
 				timeWithoutAdkRx += dt;
@@ -164,7 +181,6 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 				}
 				// Compute the motors powers.
 				float yawForce, pitchForce, rollForce, altitudeForce;
-
 				if(regulatorEnabled && meanThrust > 1.0){
 					// Compute the "forces" needed to move the quadcopter to the
 					// set point.
@@ -217,7 +233,15 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 					rollForce = 0.0f;
 					altitudeForce = 0.0f;
 				}
-				
+
+
+				//motorsPowers.ne = motor_1
+				//motorsPowers.nw = motor_2
+				//motorsPowers.sw = motor_3
+				//motorsPowers.se = motor_4
+
+				QuadcopterActivity.setMotores(motorsPowers.ne,motorsPowers.nw,motorsPowers.sw,motorsPowers.se);
+
 				//transmitter.setPowers(motorsPowers);
 				
 				// Log the variables, if needed.
@@ -290,6 +314,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 
 	public void onConnectionLost(){
 		// Emergency stop of the quadcopter.
+		Log.w("Fonotest", "Emergency 3!");
 		emergencyStop();
 	}
 	
@@ -303,6 +328,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 			// Do nothing, this is just to reset the timer.
 		}
 		else if(message.equals("emergency_stop")) {
+			Log.w("Fonotest", "Emergency 4!");
 			emergencyStop();
 		}
 		else if(message.startsWith("command ")){
@@ -409,7 +435,7 @@ public class MainController { //implements TcpMessageReceiver, AdbListener
 		// TODO
 		// The motors should stop gradually, to avoid hitting the ground too
 		// hard ?
-		Log.w("Fonotest", "Emergency stop!");
+		Log.w("Fonotest", "Emergency stop.!");
 		regulatorEnabled = false;
 	}
 	
