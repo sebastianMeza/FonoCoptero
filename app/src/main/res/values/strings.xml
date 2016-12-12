@@ -8,7 +8,25 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
-    <string name="action_example">Example action</string>
+    <string name="action_example">Action</string>
 
-    <string name="action_settings">Settings</string>
+    <string name="action_settings">Configuración</string>
+    <string name="activity_titulo">Vuelo</string>
+    <string name="paso_1_titulo">Paso 1: Comprobar sensores</string>
+    <string name="paso_1_boton">Comprobar sensores</string>
+    <string name="paso_1_instruccion">Debes comprobar que tu celular posea los sensores necesarios.</string>
+    <string name="paso_2_titulo">Paso 2: Armar Cuadricóptero</string>
+    <string name="paso_2_boton">Calibrar Cuadricóptero</string>
+    <string name="paso_2_instruccion">Presiona el botón y mantén distancia, se activará el movimiento de los motores. Esto tomará 10 segundos.</string>
+    <string name="paso_3_salir">Salir</string>
+    <string name="paso_3_titulo">Paso 3: Comenzar rutina de vuelo</string>
+    <string name="paso_3_detener">Detener</string>
+    <string name="paso_3_comenzar">Comenzar Vuelo</string>
+    <string name="paso_2_segundos">&#160;segundos para finalizar.</string>
+    <string name="paso_2_quedan">Quedan&#160;</string>
+    <string name="paso_3_segundos">&#160;segundos.</string>
+    <string name="paso_3_comenzara">La rutina comenzará en&#160;</string>
+
+
+
 </resources>

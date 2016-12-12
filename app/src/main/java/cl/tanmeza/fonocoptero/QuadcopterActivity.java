@@ -69,7 +69,7 @@ public class QuadcopterActivity extends IOIOActivity {
     }
 
     /*
-    // Deactivate some buttons.
+    // Deactivate some buttons_green.
     public boolean onKeyDown(int keyCode, KeyEvent event)
     {
     	if(keyCode == KeyEvent.KEYCODE_CALL)
@@ -208,12 +208,11 @@ public class QuadcopterActivity extends IOIOActivity {
 					//mainController.setMeanThrust(0.1f);
 					//mainController.setregulatorEnabled(true);
 					vez_2=false;
-					Thread.sleep(5000);
 					toast("INICIAR 2");
-					motor_1.setPulseWidth(1200);
-					motor_2.setPulseWidth(1200);
-					motor_3.setPulseWidth(1200);
-					motor_4.setPulseWidth(1200);
+					motor_1.setPulseWidth(1f);
+					motor_2.setPulseWidth(1.2f);
+					motor_3.setPulseWidth(2f);
+					motor_4.setPulseWidth(2f);
 					/*
 					Thread.sleep(5000);
 					motor_1.setPulseWidth(1100);
