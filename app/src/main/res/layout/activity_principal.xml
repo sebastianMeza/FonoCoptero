@@ -12,7 +12,8 @@
     <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/ScrollView01"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" >
+        android:layout_height="fill_parent"
+        android:layout_above="@+id/botonSalir">
 
         <RelativeLayout
             android:id="@+id/RelativeLayout01"
@@ -97,12 +98,15 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text="@string/paso_2_quedan"
+            android:textColor="#ff0000"
             android:id="@+id/paso_2_quedan" />
 
-        <Chronometer
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/paso_2_chronometer"
+            android:text="@string/diez"
+            android:textColor="#ff0000"
             android:layout_alignParentTop="true"
             android:layout_toRightOf="@id/paso_2_quedan" />
 
@@ -110,6 +114,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
+            android:textColor="#ff0000"
             android:text="@string/paso_2_segundos"
             android:id="@+id/paso_2_segundos"
             android:layout_toRightOf="@id/paso_2_chronometer"
@@ -165,12 +170,15 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="@string/paso_3_comenzara"
+                android:textColor="#ff0000"
                 android:id="@+id/paso_3_comenzara" />
 
-            <Chronometer
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/paso_3_chronometer"
+                android:textColor="#ff0000"
+                android:text="@string/diez"
                 android:layout_alignParentTop="true"
                 android:layout_toRightOf="@id/paso_3_comenzara" />
 
@@ -179,9 +187,12 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:text="@string/paso_3_segundos"
+                android:textColor="#ff0000"
                 android:id="@+id/paso_3_segundos"
                 android:layout_toRightOf="@id/paso_3_chronometer"
                 />
+
+
 
         </RelativeLayout>
 
