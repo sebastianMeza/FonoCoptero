@@ -1,7 +1,7 @@
 package cl.tanmeza.fonocoptero;
 
-public class PidRegulator{
-    public PidRegulator(float kp, float ki, float kd, float smoothingStrength, float aPriori){
+public class PIDReguladorAltura {
+    public PIDReguladorAltura(float kp, float ki, float kd, float smoothingStrength, float aPriori){
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;

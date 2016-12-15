@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:keepScreenOn="true"
+
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="cl.tanmeza.fonocoptero.InitialActivity"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp"
+    android:gravity="center_vertical">
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/inicial_modo_vuelo"
+            android:id="@+id/button_principal"
+            android:layout_gravity="center_horizontal" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/inicial_modo_prueba"
+            android:id="@+id/button_prueba"
+            android:layout_gravity="center_horizontal"
+            android:layout_below="@+id/button_principal"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+    </RelativeLayout>

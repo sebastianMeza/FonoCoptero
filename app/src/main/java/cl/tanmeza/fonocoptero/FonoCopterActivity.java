@@ -2,10 +2,12 @@ package cl.tanmeza.fonocoptero;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -14,25 +16,69 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.CountDownTimer;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.SystemClock;
+import android.os.IBinder;
+import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewDebug;
 import android.widget.Button;
-import android.widget.Chronometer;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.util.Calendar;
 
-public class FonoCopterActivity extends AppCompatActivity implements LocationListener, SensorEventListener{
+import ioio.lib.api.AnalogInput;
+import ioio.lib.api.DigitalOutput;
+import ioio.lib.api.IOIO;
+import ioio.lib.api.PwmOutput;
+import ioio.lib.api.exception.ConnectionLostException;
+import ioio.lib.util.BaseIOIOLooper;
+import ioio.lib.util.IOIOLooper;
+import ioio.lib.util.android.IOIOActivity;
+
+
+
+public class FonoCopterActivity extends IOIOActivity implements LocationListener, SensorEventListener{
+    //constantes iniciales
+    private static final int ESC_PWM_MINIMO_INICIAR = 750; //Este valor sólo se utiliza para incializar el acelerador electrónico
+    private static final int ESC_PWM_MINIMO_RESPOSO = 800; //Período donde el motor se encuentra en reposo
+    private static final int ESC_PWM_MINIMO_ACTIVO = 900;//Valor mínimo del período para el motor con limitador activo, aprox. un 10% de su capacidad.
+    private static final int ESC_PWM_MAXIMO = 1700; //Valor máximo de inicialización del acelerador electrónico, y período donde el motor desarrolla su máxima potencia
+
+    //Pines del IOIO
+    private static final int PIN_IOIO_ESC_1 = 1; // MOTOR DELANTERO DERECHO
+    private static final int PIN_IOIO_ESC_2 = 2; // MOTOR DELANTERO IZQUIERDO
+    private static final int PIN_IOIO_ESC_3 = 3; // MOTOR TRASERO IZQUIERDO
+    private static final int PIN_IOIO_ESC_4 = 4; // MOTOR TRASERO DERECHO
+
+    //Variables de salidas y entradas del IOIO
+    private static DigitalOutput statLed;
+    private static PwmOutput ESC_motor_1;
+    private static PwmOutput ESC_motor_2;
+    private static PwmOutput ESC_motor_3;
+    private static PwmOutput ESC_motor_4;
+
+    //Variables de valores
+    static Boolean ECS_calibrado = false;//¿Está calibrado el Acelerador Electrónico?
+    public static boolean calibrado = false;
+    private static boolean esta_armado = false;
+    private static boolean ioio_enable = false;
+
+
+    private static long periodoPWMmotor_1;
+    private static long periodoPWMmotor_2;
+    private static long periodoPWMmotor_3;
+    private static long periodoPWMmotor_4;
+
+
+    //boolean mBounded;
+    //public IOIOServicio ioioServ;
+
+
 
     public TextView cronometro_paso_2;
     public TextView cronometro_paso_3;
@@ -43,12 +89,11 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
     public Button global_salir;
     public SensorManager sensorManager;
     public Sensor rotationSensor, pressureSensor;
-
     public TextView paso_2_quedan, paso_2_segundos, paso_3_segundos, paso_3_comenzara;
 
 
-    public static boolean gps_enable=true;
 
+    public static boolean gps_enable=true;
     public static QuadCopter quad_estado;
 
     private float[] rotationVec, rotationMatrix, yawPitchRollVec;
@@ -97,16 +142,12 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
         paso_3_comenzara = (TextView) findViewById(R.id.paso_3_comenzara);
 
         cronometro_paso_2.setVisibility(View.GONE);
-        cronometro_paso_3.setVisibility(View.GONE);
         paso_2_quedan.setVisibility(View.GONE);
         paso_2_segundos.setVisibility(View.GONE);
+        cronometro_paso_3.setVisibility(View.GONE);
         paso_3_segundos.setVisibility(View.GONE);
         paso_3_comenzara.setVisibility(View.GONE);
 
-
-
-        //cronometro_paso_2.setBase(10);
-        //Se agrega un listener a los botones
         paso_1_sensores.setOnClickListener(botones_listener);
         paso_2_calibrar.setOnClickListener(botones_listener);
         paso_3_comenzar.setOnClickListener(botones_listener);
@@ -194,9 +235,9 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
                         paso_3_comenzar.setEnabled(false);
                         paso_3_detener.setEnabled(false);
                         global_salir.setEnabled(false);
+                        comprobar_calibrado();
                         invisible_counter(2, true);
                         new CountDownTimer(10000,1000) {
-                            final boolean activador_2 = comprobar_sensores();
                             public void onTick(long millisUntilFinished) {
                                 long contador_2 = (millisUntilFinished/1000);
                                 String word = ""+contador_2;
@@ -204,6 +245,7 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
                             }
                             public void onFinish() {
                                 //toast("Listo!");
+                                final boolean activador_2 = calibrado;
                                 global_salir.setEnabled(true);
                                 cronometro_paso_2.setText("0");
                                 invisible_counter(2, false);
@@ -219,9 +261,8 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
                                     paso_2_calibrar.setEnabled(true);
                                     paso_3_comenzar.setEnabled(false);
                                     paso_3_detener.setEnabled(false);
-                                    alert_dialog("Calibración","Rechazado. El cuadricóptero no se ha podido calibrar correctamente. Inténtalo de nuevo.",false);
+                                    alert_dialog("Calibración","Rechazado. El cuadricóptero no se ha podido calibrar correctamente. Inténtalo nuevamente.",false);
                                 }
-
                             }
                         }.start();
                         break;
@@ -231,6 +272,7 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
                         paso_3_comenzar.setEnabled(false);
                         paso_3_detener.setEnabled(false);
                         global_salir.setEnabled(false);
+
                         invisible_counter(3, true);
                         new CountDownTimer(10000,1000) {
                             final boolean activador_3 = comprobar_sensores();
@@ -289,15 +331,6 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
         });
     }
 
-    public class QuadCopter{
-        public float yaw, pitch, roll, //[grados].
-                baroElevacion, gpsElevacion; //[m].
-        public long time; // [nanosegundos].
-        public double longitude, latitude; //[grados].
-        public float gpsExactitud, xPos, yPos; //[m].
-        public float xVelocidad, yVelocidad; //[m/s].
-        public int nSatelites, gpsEstado; //[].
-    }
 
     @Override
     public void onSensorChanged(SensorEvent event){
@@ -320,9 +353,9 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
 
             // Make the measurements relative to the user-defined zero orientation.
             //arreglar
-            //quad_estado.yaw = getMainAngle(-(yawPitchRollVec[0]-yawZero) * RAD_TO_DEG);
-            //quad_estado.pitch = getMainAngle(-(yawPitchRollVec[1]-pitchZero) * RAD_TO_DEG);
-            //quad_estado.roll = getMainAngle((yawPitchRollVec[2]-rollZero) * RAD_TO_DEG);
+            quad_estado.yaw = QuadCopter.getMainAngle(-(yawPitchRollVec[0] - yawZero) * RAD_TO_DEG);
+            quad_estado.pitch = QuadCopter.getMainAngle(-(yawPitchRollVec[1] - pitchZero) * RAD_TO_DEG);
+            quad_estado.roll = QuadCopter.getMainAngle((yawPitchRollVec[2] - rollZero) * RAD_TO_DEG);
 
             // New sensors data are ready.
             newMeasurementsReady = true;
@@ -348,8 +381,6 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
         }
         return enable;
     }
-
-
 
 
     private void invisible_counter(final int numero,final boolean visible){
@@ -419,14 +450,6 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
     }
 
 
-    //Funciones finales
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.global, menu);
-        return true;
-    }
-
     private void toast(final String message) {
         final Context context = this;
         runOnUiThread(new Runnable() {
@@ -442,7 +465,7 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if(estado){
+                if (estado) {
                     new AlertDialog.Builder(context)
                             .setTitle(title).setMessage(message)
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -452,8 +475,7 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
                             })
                             .setIcon(R.drawable.tick)
                             .show();
-                }
-                else{
+                } else {
                     new AlertDialog.Builder(context)
                             .setTitle(title).setMessage(message)
                             .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
@@ -486,7 +508,7 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 detener_gps();
-                                FonoCopterActivity.this.finish();
+                                finish();
                             }
                         })
                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -559,4 +581,174 @@ public class FonoCopterActivity extends AppCompatActivity implements LocationLis
             }
         }
     }
+
+    //CONEXIÓN CON IOIO
+
+    public void comprobar_calibrado() {
+        try {
+            calibrado = armar_motores(true);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Override
+    protected IOIOLooper createIOIOLooper() {
+        return new Looper();
+    }
+
+    class Looper extends BaseIOIOLooper {
+        private AnalogInput input_;
+        private PwmOutput pwmOutput_;
+        private DigitalOutput led_;
+
+        @Override
+        public void setup() throws ConnectionLostException, InterruptedException {
+            Log.v("Fonocoptero - IOIO", "Comienza configuración del IOIO");
+            statLed = ioio_.openDigitalOutput(0, true); //true significa que el led de status comenzará apagado, esto debido a su lógica invertida
+            //donde true = OFF y false = ON
+            statLed.write(false);
+            Thread.sleep(1000);
+            statLed.write(true);
+            Thread.sleep(1000);
+
+            ESC_motor_1 = ioio_.openPwmOutput(PIN_IOIO_ESC_1, 50);
+            ESC_motor_2 = ioio_.openPwmOutput(PIN_IOIO_ESC_2, 50);
+            ESC_motor_3 = ioio_.openPwmOutput(PIN_IOIO_ESC_3, 50);
+            ESC_motor_4 = ioio_.openPwmOutput(PIN_IOIO_ESC_4, 50);
+
+            Log.v("Fonocoptero - ICS", "Declarados los pines físicos.");
+            statLed.write(false);
+            Thread.sleep(1000);
+            statLed.write(true);
+            Thread.sleep(1000);
+
+            //Valores PWM de actuadores son 0 --> UAV desarmado.
+            periodoPWMmotor_1 = 0;
+            periodoPWMmotor_2 = 0;
+            periodoPWMmotor_3 = 0;
+            periodoPWMmotor_4 = 0;
+
+            statLed.write(false);
+            Thread.sleep(1000);
+            statLed.write(true);
+            Thread.sleep(1000);
+
+            //ServiceControlActivity.isInterfaceLinked = true;
+            Thread.currentThread().setPriority(10);
+            Log.v("Fonocoptero ICS", "Interfaz configurada correctamente.");
+            toast("IOIO conectado! "+ioio_.getImplVersion(IOIO.VersionType.HARDWARE_VER));
+        }
+
+        @Override
+        public void loop() throws ConnectionLostException, InterruptedException {
+            if(ioio_enable){
+                Thread.sleep(20);//20ms, frecuencia de refresco de 50Hz aprox.
+                executeActuatorActions();
+            }
+        }
+
+        @Override
+        public void disconnected() {
+            super.disconnected();
+            //ServiceControlActivity.isInterfaceLinked = false;
+            ioio_enable = false;
+        }
+    }
+
+    //Realiza la rutina de calibrado del acelerador electrónico.
+    public static void calibrateECS() throws InterruptedException {
+        if(!ECS_calibrado){
+            periodoPWMmotor_1 = ESC_PWM_MINIMO_INICIAR;
+            periodoPWMmotor_2 = ESC_PWM_MINIMO_INICIAR;
+            periodoPWMmotor_3 = ESC_PWM_MINIMO_INICIAR;
+            periodoPWMmotor_4 = ESC_PWM_MINIMO_INICIAR;
+            Thread.sleep(2000);
+            periodoPWMmotor_1 = ESC_PWM_MAXIMO;
+            periodoPWMmotor_2 = ESC_PWM_MAXIMO;
+            periodoPWMmotor_3 = ESC_PWM_MAXIMO;
+            periodoPWMmotor_4 = ESC_PWM_MAXIMO;
+            Thread.sleep(2000);
+            periodoPWMmotor_1 = ESC_PWM_MINIMO_INICIAR;
+            periodoPWMmotor_2 = ESC_PWM_MINIMO_INICIAR;
+            periodoPWMmotor_3 = ESC_PWM_MINIMO_INICIAR;
+            periodoPWMmotor_4 = ESC_PWM_MINIMO_INICIAR;
+            Log.v("Fonocoptero ICS","Aceleradores electrónicos calibrados");
+            ECS_calibrado = true;
+        } else {
+            Log.v("Fonocoptero ICS", "Los aceleradores electrónicos ya han sido calibrados previamente.");
+        }
+    }
+
+    private void executeActuatorActions() throws ConnectionLostException {
+        ESC_motor_1.setPulseWidth(periodoPWMmotor_1);
+        ESC_motor_2.setPulseWidth(periodoPWMmotor_2);
+        ESC_motor_3.setPulseWidth(periodoPWMmotor_3);
+        ESC_motor_4.setPulseWidth(periodoPWMmotor_4);
+    }
+
+    public boolean armar_motores(boolean engineArming) throws InterruptedException {
+        if(engineArming){
+            esta_armado = true;
+            calibrateECS();
+            periodoPWMmotor_1 = ESC_PWM_MINIMO_RESPOSO;
+            periodoPWMmotor_2 = ESC_PWM_MINIMO_RESPOSO;
+            periodoPWMmotor_3 = ESC_PWM_MINIMO_RESPOSO;
+            periodoPWMmotor_4 = ESC_PWM_MINIMO_RESPOSO;
+
+            //ArmadoActivity.uavState = "Armado";
+            Log.w("ICS", "ADVERTENCIA: El motor está armado. ¡RETIRE SUS MANOS DEL PROPULSOR!");
+        }else{
+            esta_armado = false;
+            periodoPWMmotor_1 = 0;
+            periodoPWMmotor_2 = 0;
+            periodoPWMmotor_3 = 0;
+            periodoPWMmotor_4 = 0;
+            Log.v("ICS", "Motor desarmado.");
+            //ArmadoActivity.uavState = "Desarmado";
+        }
+        return esta_armado;
+        //return false;
+    }
+
+
+    public void comenzar_vuelo() throws InterruptedException {
+        if(esta_armado){
+            ioio_enable = true;
+            obtener_posicion_inicial();
+            estabilizar_vuelo();
+        }
+        else{
+            toast("Los motores no se armaron correctamente.");
+        }
+    }
+
+    public void obtener_posicion_inicial() throws InterruptedException {
+        periodoPWMmotor_1 = 0;
+        periodoPWMmotor_2 = 0;
+        periodoPWMmotor_3 = 0;
+        periodoPWMmotor_4 = 0;
+    }
+
+
+    public void estabilizar_vuelo() throws InterruptedException {
+            periodoPWMmotor_1 = 0;
+            periodoPWMmotor_2 = 0;
+            periodoPWMmotor_3 = 0;
+            periodoPWMmotor_4 = 0;
+    }
+
+
+    public void setEstadoActualComoZero(){
+        yawZero = yawPitchRollVec[0];
+        pitchZero = yawPitchRollVec[1];
+        rollZero = yawPitchRollVec[2];
+        elevationZero = absoluteElevation;
+        longitudeZero = absoluteLongitude;
+        latitudeZero = absoluteLatitude;
+
+
+
+    }
+
 }

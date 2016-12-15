@@ -27,6 +27,9 @@
     <string name="paso_3_segundos">&#160;segundo(s).</string>
     <string name="paso_3_comenzara">La rutina comenzará en&#160;</string>
     <string name="diez">10</string>
+    <string name="inicial_modo_vuelo">MODO VUELO</string>
+    <string name="inicial_modo_prueba">MODO PRUEBA</string>
+    <string name="pruebas_title">Pruebas de Vuelo</string>
 
 
 </resources>

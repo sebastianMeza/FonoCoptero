@@ -2,8 +2,8 @@ package cl.tanmeza.fonocoptero;
 
 // This PID regulator is for angles (in degrees) only, because it handles the
 // transition "+180°, -180°".
-public class PidAngleRegulator{
-    public PidAngleRegulator(float kp, float ki, float kd, float smoothingStrength)    {
+public class PIDReguladorAngulo {
+    public PIDReguladorAngulo(float kp, float ki, float kd, float smoothingStrength)    {
         this.kp = kp;
         this.ki = ki;
         this.kd = kd;
@@ -18,7 +18,7 @@ public class PidAngleRegulator{
         // The complete turn can be done, so we have to be careful around the
         // "+180°, -180°" limit.
         float rawDifference = targetAngle - currentAngle;
-        float difference = PosRotSensors.getMainAngle(rawDifference);
+        float difference = QuadCopter.getMainAngle(rawDifference);
         boolean differenceJump = (difference != rawDifference);
 
         // Now, the PID computation can be done.

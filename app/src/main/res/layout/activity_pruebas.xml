@@ -1,0 +1,193 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:keepScreenOn="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="cl.tanmeza.fonocoptero.FonoCopterActivity"
+    android:paddingLeft="12dp"
+    android:paddingRight="12dp" >
+
+<TextView
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="@string/pruebas_title"
+    android:id="@+id/textView_pruebas_title"
+    android:textSize="30sp"
+    android:layout_alignParentTop="true"
+    android:layout_centerHorizontal="true"
+    />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="yawZero: "
+        android:id="@+id/textView_yawZero"
+        android:layout_below="@+id/textView_pitchZero"
+
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="pitchZero: "
+        android:id="@+id/textView_pitchZero"
+        android:layout_below="@+id/textView_rollZero"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="rollZero: "
+        android:id="@+id/textView_rollZero"
+        android:layout_below="@+id/textView_elevationZero"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="elevationZero: "
+        android:id="@+id/textView_elevationZero"
+        android:layout_below="@+id/textView_longitudeZero"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="longitudeZero: "
+        android:id="@+id/textView_longitudeZero"
+        android:layout_below="@+id/textView_latitudeZero"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="latitudeZero: "
+        android:id="@+id/textView_latitudeZero"
+        android:layout_below="@+id/textView_pruebas_title"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#2a2c38"
+        android:id="@+id/separador_prueba"
+        android:layout_below="@+id/textView_yawZero"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="10dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="yaw: "
+        android:id="@+id/textView_yaw"
+        android:layout_below="@+id/textView_pitch"
+
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="pitch: "
+        android:id="@+id/textView_pitch"
+        android:layout_below="@+id/textView_roll"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="roll: "
+        android:id="@+id/textView_roll"
+        android:layout_below="@+id/textView_elevation"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="elevation: "
+        android:id="@+id/textView_elevation"
+        android:layout_below="@+id/textView_longitude"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="longitude: "
+        android:id="@+id/textView_longitude"
+        android:layout_below="@+id/textView_latitude"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="latitude: "
+        android:id="@+id/textView_latitude"
+        android:layout_below="@+id/separador_prueba"
+        />
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/rl_0"
+        android:layout_above="@+id/rl_1"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="true">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:text="Motores:"
+                android:id="@+id/textView_motores"/>
+
+        </LinearLayout>
+    </RelativeLayout>
+<RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+    android:id="@+id/rl_1"
+    android:layout_above="@+id/rl_2"
+    android:layout_alignParentRight="true"
+    android:layout_alignParentEnd="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="true">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 2:"
+                android:id="@+id/textView_motor2"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 1:"
+                android:id="@+id/textView_motor1"/>
+        </LinearLayout>
+</RelativeLayout><RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+    android:id="@+id/rl_2"
+    android:layout_alignParentBottom="true"
+    android:layout_alignParentRight="true"
+    android:layout_alignParentEnd="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentEnd="false">
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 3:"
+                android:id="@+id/textView_motor3"/>
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight=".50"
+                android:text="Motor 4:"
+                android:id="@+id/textView_motor4"/>
+        </LinearLayout>
+</RelativeLayout>
+
+</RelativeLayout>
