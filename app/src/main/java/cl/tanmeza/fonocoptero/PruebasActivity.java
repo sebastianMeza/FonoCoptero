@@ -201,9 +201,9 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
 
             // Make the measurements relative to the user-defined zero orientation.
             //arreglar
-            quad_estado.yaw = QuadCopter.getMainAngle(-(yawPitchRollVec[0] - yawZero) * RAD_TO_DEG);
-            quad_estado.pitch = QuadCopter.getMainAngle(-(yawPitchRollVec[1]-pitchZero) * RAD_TO_DEG);
-            quad_estado.roll = QuadCopter.getMainAngle((yawPitchRollVec[2] - rollZero) * RAD_TO_DEG);
+            quad_estado.yaw = QuadCopter.getMainAngle(-(yawPitchRollVec[0]) * RAD_TO_DEG);
+            quad_estado.pitch = QuadCopter.getMainAngle(-(yawPitchRollVec[1]) * RAD_TO_DEG);
+            quad_estado.roll = QuadCopter.getMainAngle((yawPitchRollVec[2]) * RAD_TO_DEG);
 
             // New sensors data are ready.
             newMeasurementsReady = true;
@@ -378,7 +378,7 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
 
             yawRegulator = new PIDReguladorAngulo(0.0f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
             pitchRegulator = new PIDReguladorAngulo(0.0f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
-            rollRegulator = new PIDReguladorAngulo(0.0f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
+            rollRegulator = new PIDReguladorAngulo(0.0f, 0.002f, 0.0f, PID_DERIV_SMOOTHING);
             altitudeRegulator = new PIDReguladorAltura(0.0f,  0.0f,  0.0f, PID_DERIV_SMOOTHING, 0.0f);
             new CountDownTimer(2000,1000) {
                 public void onTick(long millisUntilFinished) {
@@ -401,10 +401,10 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
             public void run() {
                 //Con dt=20 (loop cada 0,02 segundos) 1000 se alcanza a los 20 segundos,
                 // lo que permite obtener valores más exactos de los sensores
-                if(contador<=1000) {
+                if(contador<=1100) {
                     contador++;
                 }
-                if(contador==1000) {
+                if(contador==1100) {
                     getEstadoActualComoZero();
                     yawAngleTarget = yawZero;
                     pitchAngleTarget = pitchZero;
@@ -418,7 +418,7 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
                     toast("Zero definido, motores al 10%");
 
                 }
-                else if(contador>1000){
+                else if(contador>1100){
                     float yawForce, pitchForce, rollForce, altitudeForce;
                     float currentYaw, currentPitch, currentRoll, currentAltitude;
                     double tempPowerNW, tempPowerNE, tempPowerSE, tempPowerSW;

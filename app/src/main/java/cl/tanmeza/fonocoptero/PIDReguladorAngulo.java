@@ -1,5 +1,7 @@
 package cl.tanmeza.fonocoptero;
 
+import ioio.lib.spi.Log;
+
 // This PID regulator is for angles (in degrees) only, because it handles the
 // transition "+180°, -180°".
 public class PIDReguladorAngulo {
@@ -31,6 +33,10 @@ public class PIDReguladorAngulo {
         integrator += difference * ki * dt;
         input += integrator;
 
+
+        //if(differenceJump)
+        //Log.v("Fonocoptero PID", "input pre = "+input);
+
         // Derivative part, with filtering.
         if(!differenceJump){
             differencesMean = differencesMean * smoothingStrength + difference * (1-smoothingStrength);
@@ -43,6 +49,7 @@ public class PIDReguladorAngulo {
             // the "same side".
             differencesMean = 0.0f;
         }
+        //Log.v("Fonocoptero PID", "input out= "+input);
         return input;
     }
 
