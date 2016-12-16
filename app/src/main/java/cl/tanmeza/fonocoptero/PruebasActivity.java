@@ -71,10 +71,10 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
     public TextView textView_motor3;
     public TextView textView_motor4;
 
-    Handler handler;
-    Runnable run;
+    Handler handler,handler_2;
+    Runnable run,run_2;
     int contador = 0;
-    boolean loop_vuelo = true;
+    boolean loop_vuelo = true,loop_Zero = true;
 
     //constantes iniciales
     private static final int ESC_PWM_MINIMO_INICIAR = 750; //Este valor sólo se utiliza para incializar el acelerador electrónico
@@ -376,18 +376,18 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
             periodoPWMmotor_3 = 0;
             periodoPWMmotor_4 = 0;
 
-            yawRegulator = new PIDReguladorAngulo(0.0f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
-            pitchRegulator = new PIDReguladorAngulo(0.0f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
-            rollRegulator = new PIDReguladorAngulo(0.0f, 0.002f, 0.0f, PID_DERIV_SMOOTHING);
-            altitudeRegulator = new PIDReguladorAltura(0.0f,  0.0f,  0.0f, PID_DERIV_SMOOTHING, 0.0f);
+            yawRegulator = new PIDReguladorAngulo(0.002f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
+            pitchRegulator = new PIDReguladorAngulo(0.02f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
+            rollRegulator = new PIDReguladorAngulo(0.02f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
+            altitudeRegulator = new PIDReguladorAltura(0.02f,  0.0f,  0.0f, PID_DERIV_SMOOTHING, 0.0f);
             new CountDownTimer(2000,1000) {
                 public void onTick(long millisUntilFinished) {
                 }
                 public void onFinish() {
+                    getEstadoActualComoZero();
                     estabilizar_vuelo();
                 }
             }.start();
-            //getEstadoActualComoZero();
         }
         else{
             toast("Los motores no se armaron correctamente.");
@@ -401,24 +401,7 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
             public void run() {
                 //Con dt=20 (loop cada 0,02 segundos) 1000 se alcanza a los 20 segundos,
                 // lo que permite obtener valores más exactos de los sensores
-                if(contador<=1100) {
-                    contador++;
-                }
-                if(contador==1100) {
-                    getEstadoActualComoZero();
-                    yawAngleTarget = yawZero;
-                    pitchAngleTarget = pitchZero;
-                    rollAngleTarget = rollZero;
-                    altitudeTarget = elevationZero;
-
-                    periodoPWMmotor_1 = ESC_PWM_MINIMO_ACTIVO+500;
-                    periodoPWMmotor_2 = ESC_PWM_MINIMO_ACTIVO+500;
-                    periodoPWMmotor_3 = ESC_PWM_MINIMO_ACTIVO+500;
-                    periodoPWMmotor_4 = ESC_PWM_MINIMO_ACTIVO+500;
-                    toast("Zero definido, motores al 10%");
-
-                }
-                else if(contador>1100){
+                if(barometro_estabilizado){
                     float yawForce, pitchForce, rollForce, altitudeForce;
                     float currentYaw, currentPitch, currentRoll, currentAltitude;
                     double tempPowerNW, tempPowerNE, tempPowerSE, tempPowerSW;
@@ -502,18 +485,49 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
     }
 
     public void getEstadoActualComoZero() {
-        yawZero = quad_estado.yaw;
-        pitchZero = quad_estado.pitch;
-        rollZero = quad_estado.roll;
-        elevationZero = quad_estado.baroElevacion;
-        longitudeZero = (float) quad_estado.longitude;
-        latitudeZero = (float) quad_estado.latitude;
-        textView_yawZero.setText(text_yawZero+yawZero);
-        textView_pitchZero.setText(text_pitchZero+pitchZero);
-        textView_rollZero.setText(text_rollZero+rollZero);
-        textView_elevationZero.setText(text_elevationZero+elevationZero);
-        textView_longitudeZero.setText(text_longitudeZero+longitudeZero);
-        textView_latitudeZero.setText(text_latitudeZero+latitudeZero);
+        handler_2 = new Handler();
+        run_2 = new Runnable() {
+            @Override
+            public void run() {
+
+                barometro_new = quad_estado.baroElevacion;
+                if(barometro_old>barometro_new){
+                    yawZero = quad_estado.yaw;
+                    pitchZero = quad_estado.pitch;
+                    rollZero = quad_estado.roll;
+                    elevationZero = quad_estado.baroElevacion;
+                    longitudeZero = (float) quad_estado.longitude;
+                    latitudeZero = (float) quad_estado.latitude;
+                    textView_yawZero.setText(text_yawZero+yawZero);
+                    textView_pitchZero.setText(text_pitchZero+pitchZero);
+                    textView_rollZero.setText(text_rollZero+rollZero);
+                    textView_elevationZero.setText(text_elevationZero+elevationZero);
+                    textView_longitudeZero.setText(text_longitudeZero+longitudeZero);
+                    textView_latitudeZero.setText(text_latitudeZero+latitudeZero);
+
+                    yawAngleTarget = yawZero;
+                    pitchAngleTarget = pitchZero;
+                    rollAngleTarget = rollZero;
+                    altitudeTarget = elevationZero;
+
+                    periodoPWMmotor_1 = ESC_PWM_MINIMO_ACTIVO+500;
+                    periodoPWMmotor_2 = ESC_PWM_MINIMO_ACTIVO+500;
+                    periodoPWMmotor_3 = ESC_PWM_MINIMO_ACTIVO+500;
+                    periodoPWMmotor_4 = ESC_PWM_MINIMO_ACTIVO+500;
+
+                    toast("Barómetro Calibrado. Zero definido.");
+                    loop_Zero=false;
+                    barometro_estabilizado = true;
+
+                }
+                barometro_old = barometro_new;
+
+                if (loop_Zero) { //checks if it is not already 3 second
+                    handler_2.postDelayed(run_2, (long) 1000); //run the method again
+                }
+            }
+        };
+        handler_2.postDelayed(run_2, (long) 1000); //will call the runnable every 1 second
     }
 
     private int motorSaturacion(double val){
@@ -540,7 +554,8 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
                 yawForce, pitchForce, rollForce, meanThrust,
                 nwPower, nePower, sePower, swPower, altitude;
     }
-    float dt = 0.02f;
+    float dt = 0.02f,barometro_new = -999.0f, barometro_old = -1000.0f;
+    boolean barometro_estabilizado = false;
     private float meanThrust, yawAngleTarget, pitchAngleTarget, rollAngleTarget,
             altitudeTarget, batteryVoltage, timeWithoutPcRx,
             timeWithoutAdkRx;

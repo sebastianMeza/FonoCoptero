@@ -26,28 +26,37 @@ public class PIDReguladorAngulo {
         // Now, the PID computation can be done.
         float input = 0.0f;
 
-        // Proportional part.
-        input += difference * kp;
 
-        // Integral part.
-        integrator += difference * ki * dt;
-        input += integrator;
+            // Proportional part.
+            input += difference * kp;
+
+            // Integral part.
+            integrator += difference * ki * dt;
+            input += integrator;
 
 
-        //if(differenceJump)
-        //Log.v("Fonocoptero PID", "input pre = "+input);
+            //if(differenceJump)
+            //Log.v("Fonocoptero PID", "input pre = "+input);
 
-        // Derivative part, with filtering.
-        if(!differenceJump){
-            differencesMean = differencesMean * smoothingStrength + difference * (1-smoothingStrength);
-            float derivative = (differencesMean - previousDifference) / dt;
-            previousDifference = differencesMean;
-            input += derivative * kd;
+            // Derivative part, with filtering.
+            if (!differenceJump) {
+                differencesMean = differencesMean * smoothingStrength + difference * (1 - smoothingStrength);
+                float derivative = (differencesMean - previousDifference) / dt;
+                previousDifference = differencesMean;
+                input += derivative * kd;
+            } else {
+                // Erase the history, because we are not reaching the target from
+                // the "same side".
+                differencesMean = 0.0f;
+            }
+        if(Math.abs(difference)<1.0f) {
+            input = 0.0f;
         }
-        else{
-            // Erase the history, because we are not reaching the target from
-            // the "same side".
-            differencesMean = 0.0f;
+        else if(Math.abs(difference)<5.0f) {
+            input = input/4;
+        }
+        else if(Math.abs(difference)<10.0f) {
+            input = input/2;
         }
         //Log.v("Fonocoptero PID", "input out= "+input);
         return input;

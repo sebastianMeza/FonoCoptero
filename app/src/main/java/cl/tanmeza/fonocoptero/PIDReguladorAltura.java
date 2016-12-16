@@ -28,6 +28,17 @@ public class PIDReguladorAltura {
         float derivative = (differencesMean - previousDifference) / dt;
         previousDifference = differencesMean;
         input += derivative * kd;
+
+        if(Math.abs(difference)<0.2f) {
+            input = 0.0f;
+        }
+        else if(Math.abs(difference)<1.0f) {
+            input = input/4;
+        }
+        else if(Math.abs(difference)<2.0f) {
+            input = input/2;
+        }
+
         return input;
     }
 
