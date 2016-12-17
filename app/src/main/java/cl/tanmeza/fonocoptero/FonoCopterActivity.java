@@ -16,6 +16,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
@@ -230,84 +231,102 @@ public class FonoCopterActivity extends IOIOActivity implements LocationListener
                         }
                         break;
                     case 2:
-                        paso_1_sensores.setEnabled(false);
-                        paso_2_calibrar.setEnabled(false);
-                        paso_3_comenzar.setEnabled(false);
-                        paso_3_detener.setEnabled(false);
-                        global_salir.setEnabled(false);
-                        comprobar_calibrado();
-                        invisible_counter(2, true);
-                        new CountDownTimer(10000,1000) {
-                            public void onTick(long millisUntilFinished) {
-                                long contador_2 = (millisUntilFinished/1000);
-                                String word = ""+contador_2;
-                                cronometro_paso_2.setText(word);
-                            }
-                            public void onFinish() {
-                                //toast("Listo!");
-                                final boolean activador_2 = calibrado;
-                                global_salir.setEnabled(true);
-                                cronometro_paso_2.setText("0");
-                                invisible_counter(2, false);
-                                if (activador_2) {
-                                    paso_1_sensores.setEnabled(false);
-                                    paso_2_calibrar.setEnabled(false);
-                                    paso_3_comenzar.setEnabled(true);
-                                    paso_3_detener.setEnabled(false);
-                                    alert_dialog("Calibración", "Aceptado. Presiona aceptar para continuar.", true);
+                        if(ioio_enable) {
+                            paso_1_sensores.setEnabled(false);
+                            paso_2_calibrar.setEnabled(false);
+                            paso_3_comenzar.setEnabled(false);
+                            paso_3_detener.setEnabled(false);
+                            global_salir.setEnabled(false);
+                            comprobar_calibrado();
+                            invisible_counter(2, true);
+                            contador_calibrado = 10;
+                            handler_calibrado = new Handler();
+                            run_calibrado = new Runnable() {
+                                @Override
+                                public void run() {
+                                    String valor_cronometro_paso_2 = "" + contador_calibrado;
+                                    cronometro_paso_2.setText(valor_cronometro_paso_2);
+                                    if (contador_calibrado == 0) {
+                                        //toast("Listo!");
+                                        boolean activador_2 = calibrado;
+                                        global_salir.setEnabled(true);
+                                        invisible_counter(2, false);
+                                        if (activador_2) {
+                                            paso_1_sensores.setEnabled(false);
+                                            paso_2_calibrar.setEnabled(false);
+                                            paso_3_comenzar.setEnabled(true);
+                                            paso_3_detener.setEnabled(false);
+                                            alert_dialog("Calibración", "Aceptado. Presiona aceptar para continuar.", true);
+                                        } else {
+                                            paso_1_sensores.setEnabled(false);
+                                            paso_2_calibrar.setEnabled(true);
+                                            paso_3_comenzar.setEnabled(false);
+                                            paso_3_detener.setEnabled(false);
+                                            alert_dialog("Calibración", "Rechazado. El cuadricóptero no se ha podido calibrar correctamente. Inténtalo nuevamente.", false);
+                                        }
+                                    }
+                                    contador_calibrado--;
+                                    if (contador_calibrado >= 0) { //checks if it is not already 3 second
+                                        handler_calibrado.postDelayed(run_calibrado, (long) 1000); //run the method again
+                                    }
                                 }
-                                else{
-                                    paso_1_sensores.setEnabled(false);
-                                    paso_2_calibrar.setEnabled(true);
-                                    paso_3_comenzar.setEnabled(false);
-                                    paso_3_detener.setEnabled(false);
-                                    alert_dialog("Calibración","Rechazado. El cuadricóptero no se ha podido calibrar correctamente. Inténtalo nuevamente.",false);
-                                }
-                            }
-                        }.start();
+                            };
+                            handler_calibrado.postDelayed(run_calibrado, (long) 1000); //will call the runnable every 1 second
+                        }
+                        else{
+                            alert_dialog("IOIO Desconectado", "Su IOIO no ha sido reconocido. Inténtalo nuevamente.", false);
+                        }
                         break;
                     case 3:
-                        paso_1_sensores.setEnabled(false);
-                        paso_2_calibrar.setEnabled(false);
-                        paso_3_comenzar.setEnabled(false);
-                        paso_3_detener.setEnabled(false);
-                        global_salir.setEnabled(false);
+                        if(ioio_enable) {
+                            detener_vuelo = false;
 
-                        invisible_counter(3, true);
-                        new CountDownTimer(10000,1000) {
-                            final boolean activador_3 = comprobar_sensores();
-                            public void onTick(long millisUntilFinished) {
-                                long contador_3 = (millisUntilFinished/1000);
-                                String word = ""+contador_3;
-                                cronometro_paso_3.setText(word);
-                            }
-                            public void onFinish() {
-                                //toast("Listo!");
-                                global_salir.setEnabled(true);
-                                cronometro_paso_3.setText("0");
-                                invisible_counter(3,false);
-                                if (activador_3) {
-                                    paso_1_sensores.setEnabled(false);
-                                    paso_2_calibrar.setEnabled(false);
-                                    paso_3_comenzar.setEnabled(false);
-                                    paso_3_detener.setEnabled(true);
-                                    //alert_dialog("Comenzar Vuelo", "Aceptado.", true);
-                                    toast("Comienza el vuelo");
-                                }
-                                else{
-                                    paso_1_sensores.setEnabled(false);
-                                    paso_2_calibrar.setEnabled(false);
-                                    paso_3_comenzar.setEnabled(true);
-                                    paso_3_detener.setEnabled(false);
-                                    //alert_dialog("Comenzar Vuelo","Rechazado.",false);
-                                    toast("No ha comenzado el vuelo");
-                                }
-                            }
-                        }.start();
+                            paso_1_sensores.setEnabled(false);
+                            paso_2_calibrar.setEnabled(false);
+                            paso_3_comenzar.setEnabled(false);
+                            paso_3_detener.setEnabled(false);
+                            global_salir.setEnabled(false);
 
+                            invisible_counter(3, true);
+                            new CountDownTimer(10000, 1000) {
+                                final boolean activador_3 = comprobar_sensores();
+
+                                public void onTick(long millisUntilFinished) {
+                                    long contador_3 = (millisUntilFinished / 1000);
+                                    String word = "" + contador_3;
+                                    cronometro_paso_3.setText(word);
+                                }
+
+                                public void onFinish() {
+                                    //toast("Listo!");
+                                    global_salir.setEnabled(true);
+                                    cronometro_paso_3.setText("0");
+                                    invisible_counter(3, false);
+                                    if (activador_3) {
+                                        paso_1_sensores.setEnabled(false);
+                                        paso_2_calibrar.setEnabled(false);
+                                        paso_3_comenzar.setEnabled(false);
+                                        paso_3_detener.setEnabled(true);
+                                        //alert_dialog("Comenzar Vuelo", "Aceptado.", true);
+                                        toast("Comienza el vuelo");
+                                    } else {
+                                        paso_1_sensores.setEnabled(false);
+                                        paso_2_calibrar.setEnabled(false);
+                                        paso_3_comenzar.setEnabled(true);
+                                        paso_3_detener.setEnabled(false);
+                                        //alert_dialog("Comenzar Vuelo","Rechazado.",false);
+                                        toast("No ha comenzado el vuelo");
+                                    }
+                                }
+                            }.start();
+                        }
+                        else{
+                            alert_dialog("IOIO Desconectado", "Su IOIO no ha sido reconocido. Inténtalo nuevamente.", false);
+                        }
                         break;
                     case 4:
-                        boolean activador_4 = comprobar_sensores();
+                        boolean activador_4 = true;
+                        detener_vuelo = true;
                         if (activador_4) {
                             paso_1_sensores.setEnabled(false);
                             paso_2_calibrar.setEnabled(false);
@@ -637,12 +656,13 @@ public class FonoCopterActivity extends IOIOActivity implements LocationListener
             //ServiceControlActivity.isInterfaceLinked = true;
             Thread.currentThread().setPriority(10);
             Log.v("Fonocoptero ICS", "Interfaz configurada correctamente.");
-            toast("IOIO conectado! "+ioio_.getImplVersion(IOIO.VersionType.HARDWARE_VER));
+            toast("IOIO conectado! " + ioio_.getImplVersion(IOIO.VersionType.HARDWARE_VER));
+            ioio_enable=true;
         }
 
         @Override
         public void loop() throws ConnectionLostException, InterruptedException {
-            if(ioio_enable){
+            if(ioio_enable && !detener_vuelo){
                 Thread.sleep(20);//20ms, frecuencia de refresco de 50Hz aprox.
                 executeActuatorActions();
             }
@@ -659,22 +679,39 @@ public class FonoCopterActivity extends IOIOActivity implements LocationListener
     //Realiza la rutina de calibrado del acelerador electrónico.
     public static void calibrateECS() throws InterruptedException {
         if(!ECS_calibrado){
-            periodoPWMmotor_1 = ESC_PWM_MINIMO_INICIAR;
-            periodoPWMmotor_2 = ESC_PWM_MINIMO_INICIAR;
-            periodoPWMmotor_3 = ESC_PWM_MINIMO_INICIAR;
-            periodoPWMmotor_4 = ESC_PWM_MINIMO_INICIAR;
-            Thread.sleep(2000);
-            periodoPWMmotor_1 = ESC_PWM_MAXIMO;
-            periodoPWMmotor_2 = ESC_PWM_MAXIMO;
-            periodoPWMmotor_3 = ESC_PWM_MAXIMO;
-            periodoPWMmotor_4 = ESC_PWM_MAXIMO;
-            Thread.sleep(2000);
-            periodoPWMmotor_1 = ESC_PWM_MINIMO_INICIAR;
-            periodoPWMmotor_2 = ESC_PWM_MINIMO_INICIAR;
-            periodoPWMmotor_3 = ESC_PWM_MINIMO_INICIAR;
-            periodoPWMmotor_4 = ESC_PWM_MINIMO_INICIAR;
-            Log.v("Fonocoptero ICS","Aceleradores electrónicos calibrados");
-            ECS_calibrado = true;
+            contador_calibrado_ESC=0;
+            handler_calibrado_ESC = new Handler();
+            run_calibrado_ESC = new Runnable() {
+                @Override
+                public void run() {
+                    if(contador_calibrado_ESC==0){
+                        periodoPWMmotor_1 = ESC_PWM_MINIMO_INICIAR;
+                        periodoPWMmotor_2 = ESC_PWM_MINIMO_INICIAR;
+                        periodoPWMmotor_3 = ESC_PWM_MINIMO_INICIAR;
+                        periodoPWMmotor_4 = ESC_PWM_MINIMO_INICIAR;
+                    }
+                    else if(contador_calibrado_ESC==1) {
+                        periodoPWMmotor_1 = ESC_PWM_MAXIMO;
+                        periodoPWMmotor_2 = ESC_PWM_MAXIMO;
+                        periodoPWMmotor_3 = ESC_PWM_MAXIMO;
+                        periodoPWMmotor_4 = ESC_PWM_MAXIMO;
+                    }
+                    else if(contador_calibrado_ESC==2) {
+                        periodoPWMmotor_1 = ESC_PWM_MINIMO_INICIAR;
+                        periodoPWMmotor_2 = ESC_PWM_MINIMO_INICIAR;
+                        periodoPWMmotor_3 = ESC_PWM_MINIMO_INICIAR;
+                        periodoPWMmotor_4 = ESC_PWM_MINIMO_INICIAR;
+                        Log.v("Fonocoptero ICS", "Aceleradores electrónicos calibrados");
+                        ECS_calibrado = true;
+                    }
+                    contador_calibrado_ESC++;
+                    if (contador_calibrado_ESC<=2) { //checks if it is not already 3 second
+                        handler_calibrado_ESC.postDelayed(run_calibrado_ESC, (long) 2000); //run the method again
+                    }
+                }
+            };
+            handler_calibrado_ESC.postDelayed(run_calibrado_ESC, (long) 2000); //will call the runnable every 1 second
+
         } else {
             Log.v("Fonocoptero ICS", "Los aceleradores electrónicos ya han sido calibrados previamente.");
         }
@@ -690,6 +727,7 @@ public class FonoCopterActivity extends IOIOActivity implements LocationListener
     public boolean armar_motores(boolean engineArming) throws InterruptedException {
         if(engineArming){
             esta_armado = true;
+            detener_vuelo=false;
             calibrateECS();
             periodoPWMmotor_1 = ESC_PWM_MINIMO_RESPOSO;
             periodoPWMmotor_2 = ESC_PWM_MINIMO_RESPOSO;
@@ -714,7 +752,7 @@ public class FonoCopterActivity extends IOIOActivity implements LocationListener
 
     public void comenzar_vuelo() throws InterruptedException {
         if(esta_armado){
-            ioio_enable = true;
+            //ioio_enable = true;
             obtener_posicion_inicial();
             estabilizar_vuelo();
         }
@@ -747,8 +785,10 @@ public class FonoCopterActivity extends IOIOActivity implements LocationListener
         longitudeZero = absoluteLongitude;
         latitudeZero = absoluteLatitude;
 
-
-
     }
 
+    public static boolean detener_vuelo = true;
+    public static int contador_calibrado,contador_calibrado_ESC;
+    public static Handler handler_calibrado,handler_calibrado_ESC;
+    public static Runnable run_calibrado,run_calibrado_ESC;
 }

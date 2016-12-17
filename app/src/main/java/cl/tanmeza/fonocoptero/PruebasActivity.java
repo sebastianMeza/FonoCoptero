@@ -71,6 +71,10 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
     public TextView textView_motor3;
     public TextView textView_motor4;
 
+    public TextView textView_altura_target;
+    String text_altura_target = "Altura target: ";
+
+
     Handler handler,handler_2;
     Runnable run,run_2;
     int contador = 0;
@@ -154,6 +158,8 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
         textView_motor2 = (TextView) findViewById(R.id.textView_motor2);
         textView_motor3 = (TextView) findViewById(R.id.textView_motor3);
         textView_motor4 = (TextView) findViewById(R.id.textView_motor4);
+
+        textView_altura_target = (TextView) findViewById(R.id.textView_altura_target);
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
@@ -377,9 +383,9 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
             periodoPWMmotor_4 = 0;
 
             yawRegulator = new PIDReguladorAngulo(0.002f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
-            pitchRegulator = new PIDReguladorAngulo(0.02f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
-            rollRegulator = new PIDReguladorAngulo(0.02f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
-            altitudeRegulator = new PIDReguladorAltura(0.02f,  0.0f,  0.0f, PID_DERIV_SMOOTHING, 0.0f);
+            pitchRegulator = new PIDReguladorAngulo(0.01f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
+            rollRegulator = new PIDReguladorAngulo(0.01f, 0.0f, 0.0f, PID_DERIV_SMOOTHING);
+            altitudeRegulator = new PIDReguladorAltura(0.2f,  0.0f,  0.0f, PID_DERIV_SMOOTHING, 5.0f);
             new CountDownTimer(2000,1000) {
                 public void onTick(long millisUntilFinished) {
                 }
@@ -401,11 +407,21 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
             public void run() {
                 //Con dt=20 (loop cada 0,02 segundos) 1000 se alcanza a los 20 segundos,
                 // lo que permite obtener valores más exactos de los sensores
+                float altura_target=0.0f;
                 if(barometro_estabilizado){
                     float yawForce, pitchForce, rollForce, altitudeForce;
                     float currentYaw, currentPitch, currentRoll, currentAltitude;
                     double tempPowerNW, tempPowerNE, tempPowerSE, tempPowerSW;
 
+                    loop_estabilize_contador++;
+                    if(loop_estabilize_contador==500){
+                        toast("comienza ascenso");
+                        altitudeLock_bajo = false;
+                    }
+                    else if(loop_estabilize_contador==2000){
+                        toast("comienza descenso");
+                        altitudeLock_alto = false;
+                    }
                     currentYaw = quad_estado.yaw;
                     currentPitch = quad_estado.pitch;
                     currentRoll = quad_estado.roll;
@@ -413,13 +429,9 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
                     yawForce = yawRegulator.getInput(yawAngleTarget, currentYaw, dt);
                     pitchForce = pitchRegulator.getInput(pitchAngleTarget, currentPitch, dt);
                     rollForce = rollRegulator.getInput(rollAngleTarget, currentRoll, dt);
-
-                    if(altitudeLockEnabled){
-                        altitudeForce = altitudeRegulator.getInput(altitudeTarget, currentAltitude, dt);
-                    }
-                    else{
-                        altitudeForce = meanThrust;
-                    }
+                    altura_target=calcular_altura_target(1.0f);
+                    altitudeForce = altitudeRegulator.getInput(altura_target, currentAltitude, dt);
+                    //altitudeForce = meanThrust;
 
                     tempPowerNW = altitudeForce; // Vertical "force".
                     tempPowerNE = altitudeForce; //
@@ -441,7 +453,6 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
                     tempPowerSE += yawForce; //
                     tempPowerSW -= yawForce; //
 
-
                     //periodoPWMmotor_1 = ne;
                     //periodoPWMmotor_2 = nw;
                     //periodoPWMmotor_3 = sw;
@@ -451,9 +462,16 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
                     periodoPWMmotor_2 = motorSaturacion(periodoPWMmotor_2+tempPowerNW);
                     periodoPWMmotor_3 = motorSaturacion(periodoPWMmotor_3+tempPowerSW);
                     periodoPWMmotor_4 = motorSaturacion(periodoPWMmotor_4+tempPowerSE);
-
+                    if(loop_estabilize_contador==3000){
+                        loop_vuelo=false;
+                        periodoPWMmotor_1 = 0;
+                        periodoPWMmotor_2 = 0;
+                        periodoPWMmotor_3 = 0;
+                        periodoPWMmotor_4 = 0;
+                        toast("Se Detiene");
+                    }
                 }
-                getEstadoActual();
+                getEstadoActual(altura_target);
                 executeActuatorActions();
                 //Log.v("Fonocoptero", "antes sleep - estabilizar_vuelo " + contador);
                 if(loop_vuelo) { //checks if it is not already 3 second
@@ -464,16 +482,53 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
         handler.postDelayed(run, (long) dt*1000); //will call the runnable every 1 second
     }
 
+    public float calcular_altura_target(float altura_esperada){
+        float altura_target = 0.0f,altura_maxima=elevationZero+altura_esperada;
+
+        if(altitudeLock_bajo){
+            altura_target = elevationZero;
+            return altura_target;
+        }
+        if(altitudeLock_alto){
+            altura_target = altura_maxima;
+            return altura_target;
+        }
+        else if(altura_subiendo){
+            altura_deseada = altura_deseada+0.002f;
+            if(altura_deseada>=altura_maxima){
+                altitudeLock_alto=true;
+                altura_bajando=true;
+                altura_subiendo=false;
+                return altura_maxima;
+            }
+            else{
+                return altura_deseada;
+            }
+        }
+        else if(altura_bajando){
+            altura_deseada = altura_deseada-0.002f;
+            if(altura_deseada<=elevationZero){
+                altitudeLock_bajo=true;
+                altura_subiendo=true;
+                altura_bajando=false;
+                return elevationZero;
+            }
+            else{
+                return altura_deseada;
+            }
+        }
+        return elevationZero;
+    }
 
 
-
-    public void getEstadoActual(){
+    public void getEstadoActual(float altura_target){
         textView_yaw.setText(text_yaw+quad_estado.yaw);
         textView_pitch.setText(text_pitch+quad_estado.pitch);
         textView_roll.setText(text_roll+quad_estado.roll);
         textView_elevation.setText(text_elevation+quad_estado.baroElevacion);
         textView_longitude.setText(text_longitude+quad_estado.longitude);
         textView_latitude.setText(text_latitude + quad_estado.latitude);
+        textView_altura_target.setText(text_altura_target+altura_target);
 
     }
 
@@ -496,6 +551,7 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
                     pitchZero = quad_estado.pitch;
                     rollZero = quad_estado.roll;
                     elevationZero = quad_estado.baroElevacion;
+                    altura_deseada = elevationZero;
                     longitudeZero = (float) quad_estado.longitude;
                     latitudeZero = (float) quad_estado.latitude;
                     textView_yawZero.setText(text_yawZero+yawZero);
@@ -510,10 +566,10 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
                     rollAngleTarget = rollZero;
                     altitudeTarget = elevationZero;
 
-                    periodoPWMmotor_1 = ESC_PWM_MINIMO_ACTIVO+500;
-                    periodoPWMmotor_2 = ESC_PWM_MINIMO_ACTIVO+500;
-                    periodoPWMmotor_3 = ESC_PWM_MINIMO_ACTIVO+500;
-                    periodoPWMmotor_4 = ESC_PWM_MINIMO_ACTIVO+500;
+                    periodoPWMmotor_1 = ESC_PWM_MINIMO_ACTIVO;
+                    periodoPWMmotor_2 = ESC_PWM_MINIMO_ACTIVO;
+                    periodoPWMmotor_3 = ESC_PWM_MINIMO_ACTIVO;
+                    periodoPWMmotor_4 = ESC_PWM_MINIMO_ACTIVO;
 
                     toast("Barómetro Calibrado. Zero definido.");
                     loop_Zero=false;
@@ -547,23 +603,17 @@ public class PruebasActivity extends Activity implements LocationListener, Senso
     public static final float MAX_SAFE_PITCH_ROLL = 60; // [deg].
     public static final float PID_DERIV_SMOOTHING = 0.5f;
 
-    private class LogPoint
-    {
-        public long time;
-        public float yaw, pitch, roll, yawTarget, pitchTarget, rollTarget,
-                yawForce, pitchForce, rollForce, meanThrust,
-                nwPower, nePower, sePower, swPower, altitude;
-    }
-    float dt = 0.02f,barometro_new = -999.0f, barometro_old = -1000.0f;
+
+    float dt = 0.02f,barometro_new = -999.0f, barometro_old = -1000.0f, altura_deseada=0.0f;
     boolean barometro_estabilizado = false;
     private float meanThrust, yawAngleTarget, pitchAngleTarget, rollAngleTarget,
             altitudeTarget, batteryVoltage, timeWithoutPcRx,
             timeWithoutAdkRx;
-    private boolean regulatorEnabled, altitudeLockEnabled=true;
+    public static boolean altitudeLock_bajo=true,altitudeLock_alto=false,altura_subiendo=true,altura_bajando=false;
     private PIDReguladorAngulo yawRegulator, pitchRegulator, rollRegulator;
     private PIDReguladorAltura altitudeRegulator;
-    private ArrayList<LogPoint> log;
+
     private int stateSendDividerCounter;
-    private long previousTime;
+    public static long loop_estabilize_contador=0;
 
 }
